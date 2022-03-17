@@ -18,9 +18,9 @@ def get_login_info():
 
 def command_parser(curs):
     print("Welcome to the tools management system")
-    login_user(curs)
     # query usernames and passwords and make sure it exists
-    
+    login_user(curs)
+    run_program(curs)
 def login_user(curs):
     while True:
         print("\tusage:\n\tcreate a new account: create [username] [password]\n\tlogin [username] [password]")
@@ -50,7 +50,11 @@ def login_user(curs):
         cmd = input()
         parsed_cmd = cmd.split()
         
-            
+def run_program(curs):
+    while True:
+        cmd = input()
+        parsed_cmd = cmd.split()
+
 def user_exists(curs,user,pwd):
     query = "SELECT \"Username\", \"Password\" FROM p320_18.\"User\""
     curs.execute(query)
