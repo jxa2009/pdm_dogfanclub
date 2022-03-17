@@ -1,3 +1,4 @@
+from tkinter import E
 import psycopg2
 from sshtunnel import SSHTunnelForwarder
 
@@ -11,18 +12,49 @@ dbName = "p320_18"
 # create a login_info.txt file with two lines: a line containing your username on the first and password on the second
 def get_login_info():
     f = open("login_info.txt","r")
-    global cs_username, cs_username
+    global cs_username, cs_password
     cs_username = f.readline().strip()
-    cs_username = f.readline().strip()
-    
-def command_parser():
-    print("Welcome to the tools management system. Please login:")
+    cs_password = f.readline().strip()
+    return
+def command_parser(curs):
+    print("Welcome to the tools management system")
 
     # query usernames and passwords and make sure it exists
     while True:
-        if account_exists():
-            break
+        print("\tusage:\n\tcreate a new account: create [username] [password]\n\tlogin [username] [password]")
+        cmd = input()
+        parsed_cmd = cmd.split()
+        if len(parsed_cmd) != 3:
+            print("Incorrect length")
+            continue
+        action = parsed_cmd[0]
+        user = parsed_cmd[1]
+        pwd = parsed_cmd[2]
         
+        if action == "create":
+            if create_user(curs,user,pwd):
+                print("created user")
+            else:
+                print("failed to create user")
+        elif action == "login":
+            if login_user(curs,user,pwd):
+                print("logged in as {fuser}".format(fuser=user))
+                break
+            else:
+                print("failed to log in as {fuser}".format(fuser=user))
+        else:
+            print("invalid command")
+        
+def login_user(curs,user,pwd):
+    query = "SELECT \"Username\", \"Password\" FROM p320_18.\"User\""
+    curs.execute(query)
+    res = curs.fetchall()
+    for u,p in res:
+        if u == user and p == pwd:
+            return True
+
+    
+    return False
 
 
 #function that queries username and password from the database
@@ -34,17 +66,18 @@ def account_exists():
 
 def main():
     get_login_info()
+
     try:
         with SSHTunnelForwarder(('starbug.cs.rit.edu', 22),
                                 ssh_username=cs_username,
-                                ssh_password=cs_username,
+                                ssh_password=cs_password,
                                 remote_bind_address=('localhost', 5432)) as server:
             server.start()
             print("SSH tunnel established")
             params = {
                 'database': dbName,
                 'user': cs_username,
-                'password': cs_username,
+                'password': cs_password,
                 'host': 'localhost',
                 'port': server.local_bind_port
             }
@@ -52,14 +85,9 @@ def main():
 
             conn = psycopg2.connect(**params)
             curs = conn.cursor()
-
+            command_parser(curs)
             print("Database connection established")
-
-            command_parser()
-
-            
             conn.close()
-            print("Database connection closed")
     except:
         print("Connection failed")
 
