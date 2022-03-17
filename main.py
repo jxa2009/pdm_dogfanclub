@@ -1,4 +1,3 @@
-from tkinter import E
 import psycopg2
 from sshtunnel import SSHTunnelForwarder
 
@@ -16,10 +15,13 @@ def get_login_info():
     cs_username = f.readline().strip()
     cs_password = f.readline().strip()
     return
+
 def command_parser(curs):
     print("Welcome to the tools management system")
-
+    login_user(curs)
     # query usernames and passwords and make sure it exists
+    
+def login_user(curs):
     while True:
         print("\tusage:\n\tcreate a new account: create [username] [password]\n\tlogin [username] [password]")
         cmd = input()
@@ -37,7 +39,7 @@ def command_parser(curs):
             else:
                 print("failed to create user")
         elif action == "login":
-            if login_user(curs,user,pwd):
+            if user_exists(curs,user,pwd):
                 print("logged in as {fuser}".format(fuser=user))
                 break
             else:
@@ -45,23 +47,19 @@ def command_parser(curs):
         else:
             print("invalid command")
         
-def login_user(curs,user,pwd):
+        cmd = input()
+        parsed_cmd = cmd.split()
+        
+            
+def user_exists(curs,user,pwd):
     query = "SELECT \"Username\", \"Password\" FROM p320_18.\"User\""
     curs.execute(query)
     res = curs.fetchall()
     for u,p in res:
         if u == user and p == pwd:
             return True
-
-    
     return False
 
-
-#function that queries username and password from the database
-# returns true if exists, false else
-def account_exists():
-    username = input("Username: ")
-    password = input("Password: ")
 
 
 def main():
