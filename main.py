@@ -65,7 +65,7 @@ def create_user(curs,user,pwd,f_name,l_name,email):
     if user_exists(curs,user,pwd):
         print("user already exists in data base")
         return False
-        
+
     date_obj = date.today()
     today = date_obj.strftime("%d/%m/%Y")
     
@@ -92,6 +92,15 @@ def user_exists(curs,user,pwd):
     res = curs.fetchall()
     for u,p in res:
         if u == user and p == pwd:
+            query = "UPDATE p320_18.\"User\" SET \"Last Access Date\" = TO_DATE(%s,'DD/MM/YYYY') WHERE p320_18.\"User\".\"Username\" = %s;"
+            try:
+                date_obj = date.today()
+                today = date_obj.strftime("%d/%m/%Y")
+                params = (today,user,)
+                curs.execute(query,params)
+            except:
+                print("USER_EXISTS: failed to update last access date")
+                return False
             return True
     return False
 
