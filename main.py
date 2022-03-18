@@ -28,7 +28,7 @@ def login_user(curs):
         cmd = input()
         parsed_cmd = cmd.split()
         cmd_sz = len(parsed_cmd)
-        if len(parsed_cmd) == 0:
+        if cmd_sz == 0:
             print("no command passed in")
             continue
         action = parsed_cmd[0]
@@ -48,6 +48,17 @@ def login_user(curs):
             pwd = parsed_cmd[2]
             if user_exists(curs,user,pwd):
                 print("logged in as {fuser}".format(fuser=user))
+                
+                query = "UPDATE p320_18.\"User\" SET \"Last Access Date\" = TO_DATE(%s,'DD/MM/YYYY') WHERE p320_18.\"User\".\"Username\" = %s;"
+                
+                date_obj = date.today()
+                today = date_obj.strftime("%d/%m/%Y")
+                params = (today,user,)
+                try:
+                    curs.execute(query,params)
+                except:
+                    print("failed to update")
+
                 break
             else:
                 print("failed to log in as {fuser}".format(fuser=user))
@@ -57,8 +68,48 @@ def login_user(curs):
         
 def run_program(curs):
     while True:
+        #print the command you're gonna add here and how to use it
+
+        print("usage:")
+        print("\tcategory new [category_name]")
+
         cmd = input()
         parsed_cmd = cmd.split()
+        cmd_sz = len(parsed_cmd)
+        if len(parsed_cmd) == 0:
+            print("no command passed in")
+            continue
+        action = parsed_cmd[0]
+        if action == "category" and cmd_sz > 2:
+            sub_action = parsed_cmd[1]
+            name = parsed_cmd[2]
+            if sub_action == "new" and cmd_sz == 3:
+                if add_category(curs,name):
+                    print("added category")
+                else:
+                    print("failed to add category")
+
+
+def add_category(curs,name):
+    
+    try:
+        query = "SELECT Count(*) FROM p320_18.\"Categories\""
+        curs.execute(query)
+        res = curs.fetchone()
+        num_categories = res[0]
+
+        category_id = num_categories+1
+        query = "INSERT INTO p320_18.\"Categories\"(\"Category ID\",\"Category Name\") VALUES (%s,%s)"
+        params = (category_id,name,)
+        curs.execute(query,params)
+    except:
+        print("add_category: failed query")
+        return False
+    return True
+    
+    
+
+
 
 
 def create_user(curs,user,pwd,f_name,l_name,email):
@@ -82,6 +133,8 @@ def create_user(curs,user,pwd,f_name,l_name,email):
 
     return True
 
+
+# returns true if user exists in data base.
 def user_exists(curs,user,pwd):
     query = "SELECT \"Username\", \"Password\" FROM p320_18.\"User\""
     try:
@@ -92,15 +145,6 @@ def user_exists(curs,user,pwd):
     res = curs.fetchall()
     for u,p in res:
         if u == user and p == pwd:
-            query = "UPDATE p320_18.\"User\" SET \"Last Access Date\" = TO_DATE(%s,'DD/MM/YYYY') WHERE p320_18.\"User\".\"Username\" = %s;"
-            try:
-                date_obj = date.today()
-                today = date_obj.strftime("%d/%m/%Y")
-                params = (today,user,)
-                curs.execute(query,params)
-            except:
-                print("USER_EXISTS: failed to update last access date")
-                return False
             return True
     return False
 
