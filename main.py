@@ -1,6 +1,7 @@
+from re import T
 import psycopg2
 from sshtunnel import SSHTunnelForwarder
-
+from datetime import date
 
 cs_username = ""
 cs_password = ""
@@ -23,22 +24,28 @@ def command_parser(curs):
     run_program(curs)
 def login_user(curs):
     while True:
-        print("\tusage:\n\tcreate a new account: create [username] [password]\n\tlogin [username] [password]")
+        print("usage:\n\tcreate a new account: create [username] [password] [first name] [last name] [email]\n\tlogin [username] [password]")
         cmd = input()
         parsed_cmd = cmd.split()
-        if len(parsed_cmd) != 3:
-            print("Incorrect length")
+        cmd_sz = len(parsed_cmd)
+        if len(parsed_cmd) == 0:
+            print("no command passed in")
             continue
         action = parsed_cmd[0]
-        user = parsed_cmd[1]
-        pwd = parsed_cmd[2]
         
-        if action == "create":
-            if create_user(curs,user,pwd):
+        if action == "create" and cmd_sz == 6:
+            user = parsed_cmd[1]
+            pwd = parsed_cmd[2]
+            f_name = parsed_cmd[3]
+            l_name = parsed_cmd[4]
+            email = parsed_cmd[5]
+            if create_user(curs,user,pwd,f_name,l_name,email):    
                 print("created user")
             else:
                 print("failed to create user")
-        elif action == "login":
+        elif action == "login" and cmd_sz == 3:
+            user = parsed_cmd[1]
+            pwd = parsed_cmd[2]
             if user_exists(curs,user,pwd):
                 print("logged in as {fuser}".format(fuser=user))
                 break
@@ -47,17 +54,41 @@ def login_user(curs):
         else:
             print("invalid command")
         
-        cmd = input()
-        parsed_cmd = cmd.split()
         
 def run_program(curs):
     while True:
         cmd = input()
         parsed_cmd = cmd.split()
 
+
+def create_user(curs,user,pwd,f_name,l_name,email):
+    if user_exists(curs,user,pwd):
+        print("user already exists in data base")
+        return False
+        
+    date_obj = date.today()
+    today = date_obj.strftime("%d/%m/%Y")
+    
+    #insert query 
+    query = "INSERT INTO p320_18.\"User\"(\"Username\", \"Password\", \"First Name\", \"Last Name\", \"Email\",\"Creation Date\") VALUES  ( %s,%s,%s,%s,%s,TO_DATE(%s,'DD/MM/YYYY'))"
+    
+    params = (user,pwd,f_name,l_name,email,today,)
+    try:
+        curs.execute(query, params)
+        
+    except:
+        print("CREATE_USER FAILED QUERY")
+        return False
+
+    return True
+
 def user_exists(curs,user,pwd):
     query = "SELECT \"Username\", \"Password\" FROM p320_18.\"User\""
-    curs.execute(query)
+    try:
+        curs.execute(query)
+    except:
+        print("USER_EXISTS FAILED QUERY")
+        return False
     res = curs.fetchall()
     for u,p in res:
         if u == user and p == pwd:
