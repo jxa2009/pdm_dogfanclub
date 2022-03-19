@@ -1,4 +1,5 @@
 from json import tool
+import re
 from unicodedata import category
 import psycopg2
 from sshtunnel import SSHTunnelForwarder
@@ -74,11 +75,14 @@ def run_program(curs):
         print("usage:")
         print("\tcategory new [category_name]")
         print("\t         add [tool_barcode] [category_id]")
+        print("\n\tsearch barcode [tool_barcode]")
+        print("\t       name [tool_name]")
+        print("\t       category [tool_category]")
 
         cmd = input()
         parsed_cmd = cmd.split()
         cmd_sz = len(parsed_cmd)
-        if len(parsed_cmd) == 0:
+        if cmd_sz == 0:
             print("no command passed in")
             continue
         action = parsed_cmd[0]
@@ -100,6 +104,28 @@ def run_program(curs):
                     print("failed to add category to tool")
             else:
                 print("invalid command")
+
+        elif action == "search" and cmd_sz == 3:
+            sub_action = parsed_cmd[1]
+
+            if sub_action == "barcode":
+                barcode = parsed_cmd[2]
+                find_tool_by_barcode(curs, barcode)
+
+            elif sub_action == "name":
+                name = parsed_cmd[2]
+                find_tool_by_name(curs, name)
+
+            elif sub_action == "category":
+                category = parsed_cmd[2]
+                find_tool_by_category(curs, category)
+
+            else:
+                print("invalid search parameter")
+        
+        else:
+            print("invalid command")
+
 def add_category_to_tool(curs,tool_barcode,category_id):
     try:
         query = "INSERT INTO p320_18.\"Tool Categories\"(\"Tool Barcode\",\"Category ID\") VALUES (%s, %s)"
@@ -129,7 +155,24 @@ def add_new_category(curs,name):
     return True
     
     
+def find_tool_by_barcode(curs, barcode):
+    try:
+        query = "SELECT \"Tool Name\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s;"
+        params = (int(barcode),)
+        curs.execute(query, params)
+    except:
+        print("FIND_TOOL_BY_BARCODE FAILED QUERY")
+        return False
+    
+    res = curs.fetchone()
+    print("\n" + res[0] + "\n")
+    return
 
+def find_tool_by_name(curs, name):
+    return
+
+def find_tool_by_category(curs, category):
+    return
 
 
 
