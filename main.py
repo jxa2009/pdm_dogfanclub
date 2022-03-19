@@ -1,3 +1,5 @@
+from json import tool
+from unicodedata import category
 import psycopg2
 from sshtunnel import SSHTunnelForwarder
 from datetime import date
@@ -71,6 +73,7 @@ def run_program(curs):
 
         print("usage:")
         print("\tcategory new [category_name]")
+        print("\t         add [tool_barcode] [category_id]")
 
         cmd = input()
         parsed_cmd = cmd.split()
@@ -81,16 +84,33 @@ def run_program(curs):
         action = parsed_cmd[0]
         if action == "category" and cmd_sz > 2:
             sub_action = parsed_cmd[1]
-            name = parsed_cmd[2]
+            
             if sub_action == "new" and cmd_sz == 3:
-                if add_category(curs,name):
+                name = parsed_cmd[2]
+                if add_new_category(curs,name):
                     print("added category")
                 else:
                     print("failed to add category")
+            elif sub_action == "add" and cmd_sz == 4:
+                tool_barcode = parsed_cmd[2]
+                category_id = parsed_cmd[3]
+                if add_category_to_tool(curs,tool_barcode, category_id):
+                    print("successfully added category to tool")
+                else:
+                    print("failed to add category to tool")
+            else:
+                print("invalid command")
+def add_category_to_tool(curs,tool_barcode,category_id):
+    try:
+        query = "INSERT INTO p320_18.\"Tool Categories\"(\"Tool Barcode\",\"Category ID\") VALUES (%s, %s)"
+        params = (tool_barcode,category_id,)
+        curs.execute(query,params)
+    except:
+        print("add_category_tool failure")
+        return False
+    return True
 
-
-def add_category(curs,name):
-    
+def add_new_category(curs,name):
     try:
         query = "SELECT Count(*) FROM p320_18.\"Categories\""
         curs.execute(query)
@@ -101,8 +121,10 @@ def add_category(curs,name):
         query = "INSERT INTO p320_18.\"Categories\"(\"Category ID\",\"Category Name\") VALUES (%s,%s)"
         params = (category_id,name,)
         curs.execute(query,params)
+        
+        print("added category \"{category_name}\" with id \"{id}\"".format(category_name = name, id=category_id))
     except:
-        print("add_category: failed query")
+        print("add_new_category: failed query")
         return False
     return True
     
