@@ -1,4 +1,3 @@
-from re import T
 import psycopg2
 from sshtunnel import SSHTunnelForwarder
 from datetime import date
