@@ -84,7 +84,7 @@ def run_program(curs):
         print("\t       category [tool_category]")
         print("\n\tdelete barcode [tool_barcode]")
         print("\n\tborrow barcode [tool_barcode]")
-
+        print("\n\t modify [add,edit,delete]")
         cmd = input()
         parsed_cmd = cmd.split()
         cmd_sz = len(parsed_cmd)
@@ -156,52 +156,108 @@ def run_program(curs):
                 action = parsed_cmd2[0]
             
                 if (action == "toolname"):
-                    print ("What would you like new toolname to be ? ")
+                    print ("What would you like new toolname to be type (toolname,add new toolname) ? ")
                     cmd2 = input()
+                    parsed_cmd2 = cmd2.split()
 
+                    toolname = parsed_cmd2[0]
+                    newtoolname = parsed_cmd2[1]
+                    edit_new_toolname(curs,toolname, newtoolname)
+                    print("Added new toolname success")
                     
-                    query = "UPDATE p320_18.\"Tools\" SET \"Tool Name\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND \"Username current_username\" ;"
-                    params = (cmd2,action)
-                    curs.execute(query, params)
 
                 elif(action == "shareable"):
-                    print ("What would you like  to be ? ")
+                    print ("What tool whould you like to change status of if its shareable and what is the new status of tool type (toolname, new shareable or unshareable) to be ? ")
                     cmd2 = input()
+                    parsed_cmd2 = cmd2.split()
 
-                    query = "UPDATE p320_18.\"Tools\" SET \"Tool Barcode\" = %s WHERE p320_18.\"Tools\".\"Tool Barcode\"  = %s AND \"Username current_username\" ;"
-                    params = (int(barcode),int(action))
-                    curs.execute(query, params)
+                    toolname = parsed_cmd2[0]
+                    newshareable = parsed_cmd2[1]
+                    edit_shareable(curs,toolname, newshareable)
+
+                    print("Added newshareable succes")
+                    
                 
                 elif(action == "description"):
-                    print ("What would you like new description to be ? ")
+                    print ("What would you like new description to be type (toolname, add new description)? ")
                     cmd2 = input()
+                    parsed_cmd2 = cmd2.split()
 
-                    query = "UPDATE p320_18.\"Tools\" SET \"Description\" = %s WHERE p320_18.\"Tools\".\"Description\" = %s AND \"Username current_username\" ;" 
-                    params = (cmd2,action)
-                    curs.execute(query, params)
+                    toolname = parsed_cmd2[0]
+                    newdescription = parsed_cmd2[1]
+                    edit_description(curs,toolname, newdescription)
+                    print("Added newdescription success")
                 
                 else:
                     print("invalid command")
             elif sub_action == "delete":
                 print("type the name of the tool you would like to delete")
                 cmd2 = input()
-                
-                query = "DELETE FROM p320_18.\"Tools\" WHERE \"Tool Name\" = %s AND \"Username current_username\";" 
-                params = (cmd2,action)
-                curs.execute(query,params)
+                delete_new_toolname(curs,cmd2)
+                print("delete tool success")
             
             elif sub_action == "add":
                 print("What tool would you like to add")
                 cmd2 = input()
-
-                query ="UPDATE p320_18.\"Tools\" SET \"User\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND \"Username is null\" ;"
-                params = (current_username, cmd2,)
-                curs.execute(query, params)
+                add_new_toolname_User(curs,cmd2)
+                
+                print("Added tool succes")
+                
 
             else:
                 print("invalid command")
         else:
             print("invalid command")
+
+def edit_new_toolname(curs,toolname, newtoolname):
+    try:
+        query = "UPDATE p320_18.\"Tools\" SET \"Tool Name\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND \"Username current_username\" ;"
+        params = (newtoolname,toolname,)
+        curs.execute(query, params)
+    except:
+        print("edit_new_toolname failure")
+        return False
+    return True
+    
+def edit_shareable(curs,toolname, newshareable):
+    try:
+        query = "UPDATE p320_18.\"Tools\" SET \"Shareable\" = %s WHERE p320_18.\"Tools\".\"Tool Name\"  = %s AND \"Username current_username\" ;"
+        params = (newshareable,toolname,)
+        curs.execute(query, params)
+    except:
+        print("edit_shareable failure")
+        return False
+    return True
+
+def edit_description(curs,toolname, newdescription):
+    try:
+        query = "UPDATE p320_18.\"Tools\" SET \"Description\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND \"Username current_username\" ;" 
+        params = (newdescription,toolname,)
+        curs.execute(query, params)  
+    except:
+        print("edit_description failure")
+        return False
+    return True
+
+def delete_new_toolname(curs,toolname):
+    try:
+        query = "UPDATE p320_18.\"Tools\" SET \"User\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND \"Username is not null\" ;"
+        params = (0,toolname,)# how to check if no user is here 
+        curs.execute(query,params) 
+    except:
+        print("delete_new_toolname failure")
+        return False
+    return True
+
+def add_new_toolname_User(curs,toolname):
+    try:
+        query ="UPDATE p320_18.\"Tools\" SET \"User\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND \"Username is null\" ;"
+        params = (current_username, toolname,)
+        curs.execute(query, params)
+    except:
+        print("add_new_toolname_User failure")
+        return False
+    return True
 
 
 def category_id_exists(curs, category_id):
