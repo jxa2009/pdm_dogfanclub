@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 from json import tool
 from operator import le
 import re
@@ -211,8 +212,8 @@ def run_program(curs):
 
 def edit_new_toolname(curs,toolname, newtoolname):
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"Tool Name\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND \"Username current_username\" ;"
-        params = (newtoolname,toolname,)
+        query = "UPDATE p320_18.\"Tools\" SET \"Tool Name\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND p320_18.\"Username = %s \" ;"
+        params = (newtoolname,toolname,current_username,)
         curs.execute(query, params)
     except:
         print("edit_new_toolname failure")
@@ -221,8 +222,8 @@ def edit_new_toolname(curs,toolname, newtoolname):
     
 def edit_shareable(curs,toolname, newshareable):
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"Shareable\" = %s WHERE p320_18.\"Tools\".\"Tool Name\"  = %s AND \"Username current_username\" ;"
-        params = (newshareable,toolname,)
+        query = "UPDATE p320_18.\"Tools\" SET \"Shareable\" = %s WHERE p320_18.\"Tools\".\"Tool Name\"  = %s AND p320_18.\"Username = %s \" ;"
+        params = (newshareable,toolname,current_username,)
         curs.execute(query, params)
     except:
         print("edit_shareable failure")
@@ -231,8 +232,8 @@ def edit_shareable(curs,toolname, newshareable):
 
 def edit_description(curs,toolname, newdescription):
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"Description\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND \"Username current_username\" ;" 
-        params = (newdescription,toolname,)
+        query = "UPDATE p320_18.\"Tools\" SET \"Description\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND p320_18.\"Username = %s \" ;" 
+        params = (newdescription,toolname,current_username,)
         curs.execute(query, params)  
     except:
         print("edit_description failure")
@@ -241,8 +242,8 @@ def edit_description(curs,toolname, newdescription):
 
 def delete_new_toolname(curs,toolname):
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"User\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND \"Username is not null\" ;"
-        params = (0,toolname,)# how to check if no user is here 
+        query = "UPDATE p320_18.\"Tools\" SET \"User\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND p320_18.\"Username = %s \" ;"
+        params = (NULL,toolname,current_username,)# how to check if no user is here 
         curs.execute(query,params) 
     except:
         print("delete_new_toolname failure")
@@ -251,7 +252,7 @@ def delete_new_toolname(curs,toolname):
 
 def add_new_toolname_User(curs,toolname):
     try:
-        query ="UPDATE p320_18.\"Tools\" SET \"User\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND \"Username is null\" ;"
+        query ="UPDATE p320_18.\"Tools\" SET \"User\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND  p320_18.\"Username IS NULL\" ;"
         params = (current_username, toolname,)
         curs.execute(query, params)
     except:
