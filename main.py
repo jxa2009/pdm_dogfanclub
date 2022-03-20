@@ -204,7 +204,52 @@ def run_program(curs):
             print("invalid command")
 
 
-def add_category_to_tool(curs, tool_barcode, category_id):
+def category_id_exists(curs, category_id):
+    
+    
+    query = "SELECT \"Category ID\" FROM p320_18.\"Categories\""
+    curs.execute(query)
+    res = curs.fetchall()
+    for row in res:
+        id = str(row[0])
+        if id == category_id:
+            return True
+    return False
+def category_name_exists(curs, category_name):
+    # SELECT "Category Name" FROM p320_18."Categories" check if category exists before trying to insert 
+    query = "SELECT \"Category Name\" FROM p320_18.\"Categories\""
+    curs.execute(query)
+    res = curs.fetchall()
+    for row in res:
+        name = row[0]
+        if name == category_name:
+            return True
+    return False
+
+# return all the categories a tool belongs to
+def get_tools_categories(curs, tool_barcode):
+    query = "SELECT \"Category ID\" FROM p320_18.\"Tool Categories\" WHERE p320_18.\"Tool Categories\".\"Tool Barcode\" = 156"
+    params = (tool_barcode,)
+    
+    curs.execute(query,params)
+
+    res = curs.fetchall()
+
+    return res
+
+def add_category_to_tool(curs,tool_barcode,category_id):
+    if not category_id_exists(curs,category_id):
+        return False
+
+    tool_categories = get_tools_categories(curs,tool_barcode)
+
+    for row in tool_categories:
+        curr_id = row[0]
+        if category_id == str(curr_id):
+            print("tool is already in category")
+            return False
+
+    #make sure tool already not allocated to the caategory 
     try:
         query = "INSERT INTO p320_18.\"Tool Categories\"(\"Tool Barcode\",\"Category ID\") VALUES (%s, %s)"
         params = (tool_barcode, category_id,)
@@ -215,7 +260,11 @@ def add_category_to_tool(curs, tool_barcode, category_id):
     return True
 
 
-def add_new_category(curs, name):
+
+def add_new_category(curs,name):
+    if category_name_exists(curs,name):
+        return False
+
     try:
         query = "SELECT Count(*) FROM p320_18.\"Categories\""
         curs.execute(query)
@@ -365,6 +414,7 @@ def main():
 
             conn = psycopg2.connect(**params)
             curs = conn.cursor()
+            get_tools_categories(curs, 156)
             command_parser(curs)
             print("Database connection established")
             conn.close()
