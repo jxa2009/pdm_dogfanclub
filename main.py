@@ -141,7 +141,7 @@ def run_program(curs):
                 borrow_tools(curs, barcode)
                 print("Successfully made the request")
                 print("List of Tools")
-                query = "SELECT * FROM p320_18.\"Request\" WHERE \"Status\" = Available UNION SELECT * FROM p320_18.\"Tools\""
+                query = "SELECT * FROM p320_18.\"Request\" WHERE \"Status\" = Available UNION SELECT * FROM p320_18.\"Tools\" ORDER BY \"Tool Name\" ASC"
                 curs.execute(query)
         else:
             print("invalid command")
