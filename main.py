@@ -1,4 +1,5 @@
 from json import tool
+from operator import le
 import re
 from unicodedata import category
 import psycopg2
@@ -165,13 +166,46 @@ def find_tool_by_barcode(curs, barcode):
         return False
     
     res = curs.fetchone()
-    print("\n" + res[0] + "\n")
+    if res != None:
+        print("\n" + res[0] + "\n")
+    else:
+        print("\nthere is no tool with barcode: "+ barcode + "\n")
     return
 
 def find_tool_by_name(curs, name):
+    try:
+        query = "SELECT \"Tool Name\" FROM p320_18.\"Tools\" WHERE \"Tool Name\" LIKE %s;"
+        params = ('%' + name + '%',)
+        curs.execute(query, params)
+    except:
+        print("FIND_TOOL_BY_NAME FAILED QUERY")
+        return False
+    
+    res = curs.fetchall()
+    if len(res) > 0:
+        print("\n")
+        for tool in res:
+            print(tool[0] + "\n")
+    else:
+        print("\nthere is no tool that contains the name: " + name + "\n")
     return
 
 def find_tool_by_category(curs, category):
+    try:
+        query ="SELECT \"Tool Name\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" IN (SELECT \"Tool Barcode\" FROM  p320_18.\"Tool Categories\" WHERE \"Category ID\" = (SELECT \"Category ID\" FROM p320_18.\"Categories\" WHERE \"Category Name\" = %s));"
+        params = (category,)
+        curs.execute(query, params)
+    except:
+        print("FIND_TOOL_BY_CATEGORY FAILED QUERY")
+        return False
+    
+    res = curs.fetchall()
+    if len(res) > 0:
+        print("\n")
+        for tool in res:
+            print(tool[0] + '\n')
+    else:
+        print("\nthere are no tools in the category: " + category + "\n")
     return
 
 
