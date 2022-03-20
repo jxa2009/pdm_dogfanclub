@@ -9,7 +9,7 @@ from datetime import date
 cs_username = ""
 cs_password = ""
 dbName = "p320_18"
-
+current_username = ""
 
 # create a login_info.txt file with two lines: a line containing your username on the first and password on the second
 def get_login_info():
@@ -54,7 +54,7 @@ def login_user(curs):
             pwd = parsed_cmd[2]
             if user_exists(curs, user, pwd):
                 print("logged in as {fuser}".format(fuser=user))
-
+                current_username = user
                 query = "UPDATE p320_18.\"User\" SET \"Last Access Date\" = TO_DATE(%s,'DD/MM/YYYY') WHERE p320_18.\"User\".\"Username\" = %s;"
 
                 date_obj = date.today()
@@ -144,6 +144,62 @@ def run_program(curs):
                 print("List of Tools")
                 query = "SELECT * FROM p320_18.\"Request\" WHERE \"Status\" = Available UNION SELECT * FROM p320_18.\"Tools\" ORDER BY \"Tool Name\" ASC"
                 curs.execute(query)
+        elif action == "modify":
+            sub_action = parsed_cmd[1]
+            
+            
+            if sub_action == "edit":
+                print("what would you like to edit? (toolname,shareable,description) type one of these ") 
+                
+                cmd2 = input()
+                parsed_cmd2 = cmd2.split()
+                action = parsed_cmd2[0]
+            
+                if (action == "toolname"):
+                    print ("What would you like new toolname to be ? ")
+                    cmd2 = input()
+
+                    
+                    query = "UPDATE p320_18.\"Tools\" SET \"Tool Name\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND \"Username current_username\" ;"
+                    params = (cmd2,action)
+                    curs.execute(query, params)
+
+                elif(action == "shareable"):
+                    print ("What would you like  to be ? ")
+                    cmd2 = input()
+
+                    query = "UPDATE p320_18.\"Tools\" SET \"Tool Barcode\" = %s WHERE p320_18.\"Tools\".\"Tool Barcode\"  = %s AND \"Username current_username\" ;"
+                    params = (int(barcode),int(action))
+                    curs.execute(query, params)
+                
+                elif(action == "description"):
+                    print ("What would you like new description to be ? ")
+                    cmd2 = input()
+
+                    query = "UPDATE p320_18.\"Tools\" SET \"Description\" = %s WHERE p320_18.\"Tools\".\"Description\" = %s AND \"Username current_username\" ;" 
+                    params = (cmd2,action)
+                    curs.execute(query, params)
+                
+                else:
+                    print("invalid command")
+            elif sub_action == "delete":
+                print("type the name of the tool you would like to delete")
+                cmd2 = input()
+                
+                query = "DELETE FROM p320_18.\"Tools\" WHERE \"Tool Name\" = %s AND \"Username current_username\";" 
+                params = (cmd2,action)
+                curs.execute(query,params)
+            
+            elif sub_action == "add":
+                print("What tool would you like to add")
+                cmd2 = input()
+
+                query ="UPDATE p320_18.\"Tools\" SET \"User\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND \"Username is null\" ;"
+                params = (current_username, cmd2,)
+                curs.execute(query, params)
+
+            else:
+                print("invalid command")
         else:
             print("invalid command")
 
