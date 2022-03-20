@@ -183,7 +183,6 @@ def find_tool_by_barcode(curs, barcode):
         query = "SELECT \"Tool Name\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s;"
         params = (int(barcode),)
         curs.execute(query, params)
-        return True
     except:
         print("FIND_TOOL_BY_BARCODE FAILED QUERY")
         return False
@@ -217,7 +216,7 @@ def borrow_tools(curs, barcode):
 
 def find_tool_by_name(curs, name):
     try:
-        query = "SELECT \"Tool Name\" FROM p320_18.\"Tools\" WHERE \"Tool Name\" LIKE %s;"
+        query = "SELECT \"Tool Name\" FROM p320_18.\"Tools\" WHERE \"Tool Name\" LIKE %s ORDER BY \"Tool Name\" ASC;"
         params = ('%' + name + '%',)
         curs.execute(query, params)
     except:
@@ -236,7 +235,7 @@ def find_tool_by_name(curs, name):
 
 def find_tool_by_category(curs, category):
     try:
-        query ="SELECT \"Tool Name\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" IN (SELECT \"Tool Barcode\" FROM  p320_18.\"Tool Categories\" WHERE \"Category ID\" = (SELECT \"Category ID\" FROM p320_18.\"Categories\" WHERE \"Category Name\" = %s));"
+        query ="SELECT \"Tool Name\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" IN (SELECT \"Tool Barcode\" FROM  p320_18.\"Tool Categories\" WHERE \"Category ID\" = (SELECT \"Category ID\" FROM p320_18.\"Categories\" WHERE \"Category Name\" = %s)) ORDER BY \"Tool Name\" ASC;"
         params = (category,)
         curs.execute(query, params)
     except:
