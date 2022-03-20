@@ -183,7 +183,7 @@ def find_tool_by_barcode(curs, barcode):
 
 def delete_tools_by_barcode(curs, barcode):
     try:
-        query = "DELETE FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s;"
+        query = "DELETE FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s AND \"Username is null\";"
         params = (int(barcode))
         curs.execute(query, params)
     except:
