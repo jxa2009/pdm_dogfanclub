@@ -138,7 +138,7 @@ def run_program(curs):
             sub_action = parsed_cmd[1]
             if sub_action == "barcode":
                 barcode = parsed_cmd[2]
-                borrow_tools(curs, barcode)
+                borrow_tools(curs,barcode)
                 print("Successfully made the request")
         else:
             print("invalid command")
@@ -179,6 +179,7 @@ def find_tool_by_barcode(curs, barcode):
         query = "SELECT \"Tool Name\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s;"
         params = (int(barcode),)
         curs.execute(query, params)
+        return True
     except:
         print("FIND_TOOL_BY_BARCODE FAILED QUERY")
         return False
