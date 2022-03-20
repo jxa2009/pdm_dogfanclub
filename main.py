@@ -9,7 +9,7 @@ from datetime import date
 cs_username = ""
 cs_password = ""
 dbName = "p320_18"
-
+current_username = ""
 
 # create a login_info.txt file with two lines: a line containing your username on the first and password on the second
 def get_login_info():
@@ -54,7 +54,7 @@ def login_user(curs):
             pwd = parsed_cmd[2]
             if user_exists(curs, user, pwd):
                 print("logged in as {fuser}".format(fuser=user))
-
+                current_username = user
                 query = "UPDATE p320_18.\"User\" SET \"Last Access Date\" = TO_DATE(%s,'DD/MM/YYYY') WHERE p320_18.\"User\".\"Username\" = %s;"
 
                 date_obj = date.today()
@@ -84,7 +84,7 @@ def run_program(curs):
         print("\t       category [tool_category]")
         print("\n\tdelete barcode [tool_barcode]")
         print("\n\tborrow barcode [tool_barcode]")
-
+        print("\n\t modify [add,edit,delete]")
         cmd = input()
         parsed_cmd = cmd.split()
         cmd_sz = len(parsed_cmd)
@@ -144,11 +144,168 @@ def run_program(curs):
                 print("List of Tools")
                 query = "SELECT * FROM p320_18.\"Request\" WHERE \"Status\" = Available UNION SELECT * FROM p320_18.\"Tools\" ORDER BY \"Tool Name\" ASC"
                 curs.execute(query)
+        elif action == "modify":
+            sub_action = parsed_cmd[1]
+            
+            
+            if sub_action == "edit":
+                print("what would you like to edit? (toolname,shareable,description) type one of these ") 
+                
+                cmd2 = input()
+                parsed_cmd2 = cmd2.split()
+                action = parsed_cmd2[0]
+            
+                if (action == "toolname"):
+                    print ("What would you like new toolname to be type (toolname,add new toolname) ? ")
+                    cmd2 = input()
+                    parsed_cmd2 = cmd2.split()
+
+                    toolname = parsed_cmd2[0]
+                    newtoolname = parsed_cmd2[1]
+                    edit_new_toolname(curs,toolname, newtoolname)
+                    print("Added new toolname success")
+                    
+
+                elif(action == "shareable"):
+                    print ("What tool whould you like to change status of if its shareable and what is the new status of tool type (toolname, new shareable or unshareable) to be ? ")
+                    cmd2 = input()
+                    parsed_cmd2 = cmd2.split()
+
+                    toolname = parsed_cmd2[0]
+                    newshareable = parsed_cmd2[1]
+                    edit_shareable(curs,toolname, newshareable)
+
+                    print("Added newshareable succes")
+                    
+                
+                elif(action == "description"):
+                    print ("What would you like new description to be type (toolname, add new description)? ")
+                    cmd2 = input()
+                    parsed_cmd2 = cmd2.split()
+
+                    toolname = parsed_cmd2[0]
+                    newdescription = parsed_cmd2[1]
+                    edit_description(curs,toolname, newdescription)
+                    print("Added newdescription success")
+                
+                else:
+                    print("invalid command")
+            elif sub_action == "delete":
+                print("type the name of the tool you would like to delete")
+                cmd2 = input()
+                delete_new_toolname(curs,cmd2)
+                print("delete tool success")
+            
+            elif sub_action == "add":
+                print("What tool would you like to add")
+                cmd2 = input()
+                add_new_toolname_User(curs,cmd2)
+                
+                print("Added tool succes")
+                
+
+            else:
+                print("invalid command")
         else:
             print("invalid command")
 
+def edit_new_toolname(curs,toolname, newtoolname):
+    try:
+        query = "UPDATE p320_18.\"Tools\" SET \"Tool Name\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND \"Username current_username\" ;"
+        params = (newtoolname,toolname,)
+        curs.execute(query, params)
+    except:
+        print("edit_new_toolname failure")
+        return False
+    return True
+    
+def edit_shareable(curs,toolname, newshareable):
+    try:
+        query = "UPDATE p320_18.\"Tools\" SET \"Shareable\" = %s WHERE p320_18.\"Tools\".\"Tool Name\"  = %s AND \"Username current_username\" ;"
+        params = (newshareable,toolname,)
+        curs.execute(query, params)
+    except:
+        print("edit_shareable failure")
+        return False
+    return True
 
-def add_category_to_tool(curs, tool_barcode, category_id):
+def edit_description(curs,toolname, newdescription):
+    try:
+        query = "UPDATE p320_18.\"Tools\" SET \"Description\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND \"Username current_username\" ;" 
+        params = (newdescription,toolname,)
+        curs.execute(query, params)  
+    except:
+        print("edit_description failure")
+        return False
+    return True
+
+def delete_new_toolname(curs,toolname):
+    try:
+        query = "UPDATE p320_18.\"Tools\" SET \"User\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND \"Username is not null\" ;"
+        params = (0,toolname,)# how to check if no user is here 
+        curs.execute(query,params) 
+    except:
+        print("delete_new_toolname failure")
+        return False
+    return True
+
+def add_new_toolname_User(curs,toolname):
+    try:
+        query ="UPDATE p320_18.\"Tools\" SET \"User\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND \"Username is null\" ;"
+        params = (current_username, toolname,)
+        curs.execute(query, params)
+    except:
+        print("add_new_toolname_User failure")
+        return False
+    return True
+
+
+def category_id_exists(curs, category_id):
+    
+    
+    query = "SELECT \"Category ID\" FROM p320_18.\"Categories\""
+    curs.execute(query)
+    res = curs.fetchall()
+    for row in res:
+        id = str(row[0])
+        if id == category_id:
+            return True
+    return False
+def category_name_exists(curs, category_name):
+    # SELECT "Category Name" FROM p320_18."Categories" check if category exists before trying to insert 
+    query = "SELECT \"Category Name\" FROM p320_18.\"Categories\""
+    curs.execute(query)
+    res = curs.fetchall()
+    for row in res:
+        name = row[0]
+        if name == category_name:
+            return True
+    return False
+
+# return all the categories a tool belongs to
+def get_tools_categories(curs, tool_barcode):
+    query = "SELECT \"Category ID\" FROM p320_18.\"Tool Categories\" WHERE p320_18.\"Tool Categories\".\"Tool Barcode\" = 156"
+    params = (tool_barcode,)
+    
+    curs.execute(query,params)
+
+    res = curs.fetchall()
+
+    return res
+
+def add_category_to_tool(curs,tool_barcode,category_id):
+    if not category_id_exists(curs,category_id):
+        return False
+
+    tool_categories = get_tools_categories(curs,tool_barcode)
+
+    for row in tool_categories:
+        curr_id = row[0]
+        if category_id == str(curr_id):
+            print("tool is already in category")
+            return False
+
+    #make sure tool already not allocated to the caategory 
     try:
         query = "INSERT INTO p320_18.\"Tool Categories\"(\"Tool Barcode\",\"Category ID\") VALUES (%s, %s)"
         params = (tool_barcode, category_id,)
@@ -159,7 +316,11 @@ def add_category_to_tool(curs, tool_barcode, category_id):
     return True
 
 
-def add_new_category(curs, name):
+
+def add_new_category(curs,name):
+    if category_name_exists(curs,name):
+        return False
+
     try:
         query = "SELECT Count(*) FROM p320_18.\"Categories\""
         curs.execute(query)
@@ -309,6 +470,7 @@ def main():
 
             conn = psycopg2.connect(**params)
             curs = conn.cursor()
+            get_tools_categories(curs, 156)
             command_parser(curs)
             print("Database connection established")
             conn.close()
