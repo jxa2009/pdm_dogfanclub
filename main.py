@@ -192,7 +192,7 @@ def find_tool_by_barcode(curs, barcode):
         print("\n" + res[0] + "\n")
     else:
         print("\nthere is no tool with barcode: "+ barcode + "\n")
-    return
+    return True
 
 def delete_tools_by_barcode(curs, barcode):
     try:
@@ -230,7 +230,7 @@ def find_tool_by_name(curs, name):
             print(tool[0] + "\n")
     else:
         print("\nthere is no tool that contains the name: " + name + "\n")
-    return
+    return True
 
 
 def find_tool_by_category(curs, category):
@@ -249,7 +249,7 @@ def find_tool_by_category(curs, category):
             print(tool[0] + '\n')
     else:
         print("\nthere are no tools in the category: " + category + "\n")
-    return
+    return True
 
 
 def create_user(curs, user, pwd, f_name, l_name, email):
