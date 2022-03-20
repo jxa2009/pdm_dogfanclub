@@ -82,6 +82,7 @@ def run_program(curs):
         print("\t       name [tool_name]")
         print("\t       category [tool_category]")
         print("\n\tdelete barcode [tool_barcode]")
+        print("\n\tborrow barcode [tool_barcode]")
 
         cmd = input()
         parsed_cmd = cmd.split()
@@ -133,7 +134,12 @@ def run_program(curs):
                 barcode = parsed_cmd[2]
                 delete_tools_by_barcode(curs, barcode)
                 print("Successfully deleted")
-
+        elif action == "borrow" and cmd_sz > 2:
+            sub_action = parsed_cmd[1]
+            if sub_action == "barcode":
+                barcode = parsed_cmd[2]
+                borrow_tools(curs, barcode)
+                print("Successfully made the request")
         else:
             print("invalid command")
 
@@ -184,10 +190,20 @@ def find_tool_by_barcode(curs, barcode):
 def delete_tools_by_barcode(curs, barcode):
     try:
         query = "DELETE FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s AND \"Username is null\";"
-        params = (int(barcode))
+        params = (int(barcode),)
         curs.execute(query, params)
     except:
         print("DELETE_TOOLS_BY_BARCODE QUERY FAILED")
+        return False
+    return True
+
+def borrow_tools(curs, barcode):
+    try:
+        query = "SELECT \"Tool Barcode\" FROM p320_18.\"Request\" WHERE \"Status\" = Available;"
+        params = (int(barcode),)
+        curs.execute(query, params)
+    except:
+        print("BORROW_TOOLS QUERY FAILED")
         return False
     return True
 
