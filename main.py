@@ -138,8 +138,11 @@ def run_program(curs):
             sub_action = parsed_cmd[1]
             if sub_action == "barcode":
                 barcode = parsed_cmd[2]
-                borrow_tools(curs,barcode)
+                borrow_tools(curs, barcode)
                 print("Successfully made the request")
+                print("List of Tools")
+                query = "SELECT * FROM p320_18.\"Request\" WHERE \"Status\" = Available UNION SELECT * FROM p320_18.\"Tools\""
+                curs.execute(query)
         else:
             print("invalid command")
 
