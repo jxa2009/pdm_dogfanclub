@@ -368,7 +368,6 @@ def find_tool_by_barcode(curs, barcode):
         print("\nthere is no tool with barcode: " + barcode + "\n")
     return True
 
-
 def delete_tools_by_barcode(curs, barcode):
     try:
         query = "DELETE FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s AND \"Username is null\";"
@@ -443,9 +442,9 @@ def create_user(curs, user, pwd, f_name, l_name, email):
     today = date_obj.strftime("%d/%m/%Y")
 
     # insert query
-    query = "INSERT INTO p320_18.\"User\"(\"Username\", \"Password\", \"First Name\", \"Last Name\", \"Email\",\"Creation Date\") VALUES  ( %s,%s,%s,%s,%s,TO_DATE(%s,'DD/MM/YYYY'))"
+    query = "INSERT INTO p320_18.\"User\"(\"Username\", \"Password\", \"First Name\", \"Last Name\", \"Email\",\"Creation Date\",\"Last Access Date\") VALUES  ( %s,%s,%s,%s,%s,TO_DATE(%s,'DD/MM/YYYY'),TO_DATE(%s,'DD/MM/YYYY'))"
 
-    params = (user, pwd, f_name, l_name, email, today,)
+    params = (user, pwd, f_name, l_name, email, today,today,)
     try:
         curs.execute(query, params)
 
