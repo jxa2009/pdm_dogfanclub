@@ -56,7 +56,9 @@ def login_user(curs):
             pwd = parsed_cmd[2]
             if user_exists(curs, user, pwd):
                 print("logged in as {fuser}".format(fuser=user))
+                global current_username
                 current_username = user
+                
                 query = "UPDATE p320_18.\"User\" SET \"Last Access Date\" = TO_DATE(%s,'DD/MM/YYYY') WHERE p320_18.\"User\".\"Username\" = %s;"
 
                 date_obj = date.today()
@@ -77,7 +79,7 @@ def login_user(curs):
 def run_program(curs):
     while True:
         # print the command you're gonna add here and how to use it
-
+        
         print("usage:")
         print("\tcategory new [category_name]")
         print("\t         add [tool_barcode] [category_id]")
@@ -87,6 +89,7 @@ def run_program(curs):
         print("\n\tdelete barcode [tool_barcode]")
         print("\n\tborrow barcode [tool_barcode]")
         print("\n\t modify [add,edit,delete]")
+        
         cmd = input()
         parsed_cmd = cmd.split()
         cmd_sz = len(parsed_cmd)
@@ -94,6 +97,7 @@ def run_program(curs):
             print("no command passed in")
             continue
         action = parsed_cmd[0]
+        
         if action == "category" and cmd_sz > 2:
             sub_action = parsed_cmd[1]
 
@@ -157,7 +161,7 @@ def run_program(curs):
                     print ("What toolname would you like to change for toolname( the old toolname)? ")
                     cmd2 = input()
                     print ("What would you like new toolname to be (the new toolname))? ")
-                    cmd3 = input();
+                    cmd3 = input()
 
                     toolname = cmd2
                     newtoolname = cmd3
@@ -169,7 +173,7 @@ def run_program(curs):
                     print ("What toolname would you like to change for shareable(toolname)? ")
                     cmd2 = input()
                     print ("What would you like new shareable status to be (the new status shareable or unshareble)? ")
-                    cmd3 = input(); 
+                    cmd3 = input()
 
                     toolname = cmd2
                     newshareable = cmd3
@@ -182,7 +186,7 @@ def run_program(curs):
                     print ("What toolname would you like to change for description(toolname)? ")
                     cmd2 = input()
                     print ("What would you like new description to be (the new description)? ")
-                    cmd3 = input(); 
+                    cmd3 = input()
 
                     toolname = cmd2
                     newdescription = cmd3
@@ -207,11 +211,14 @@ def run_program(curs):
 
             else:
                 print("invalid command")
+        elif (action == "exit"):
+            break
         else:
             print("invalid command")
 
 
 def edit_new_toolname(curs, toolname, newtoolname):
+    global current_username
     try:
         query = "UPDATE p320_18.\"Tools\" SET \"Tool Name\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND p320_18.\"Tools\".\"Username  \" = %s;"
         params = (newtoolname, toolname, current_username,)
@@ -223,6 +230,7 @@ def edit_new_toolname(curs, toolname, newtoolname):
 
 
 def edit_shareable(curs, toolname, newshareable):
+    global current_username
     try:
         query = "UPDATE p320_18.\"Tools\" SET \"Shareable\" = %s WHERE p320_18.\"Tools\".\"Tool Name\"  = %s AND p320_18.\"Tools\".\"Username \" = %s;"
         params = (newshareable, toolname, current_username,)
@@ -234,6 +242,7 @@ def edit_shareable(curs, toolname, newshareable):
 
 
 def edit_description(curs, toolname, newdescription):
+    global current_username
     try:
         query = "UPDATE p320_18.\"Tools\" SET \"Description\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND p320_18.\"Tools\".\"Username \"= %s ;"
         params = (newdescription, toolname, current_username,)
@@ -245,6 +254,7 @@ def edit_description(curs, toolname, newdescription):
 
 
 def delete_new_toolname(curs, toolname):
+    global current_username
     try:
         query = "UPDATE p320_18.\"Tools\" SET \"Username\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND p320_18.\"Tools\".\"Username  \" = %s ;"
         params = (NULL, toolname, current_username,)  # how to check if no user is here
@@ -256,6 +266,7 @@ def delete_new_toolname(curs, toolname):
 
 
 def add_new_toolname_User(curs, toolname):
+    global current_username
     try:
         query = "UPDATE p320_18.\"Tools\" SET \"Username\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND  p320_18.\"Tools\".\"Username\" IS NULL ;"
         params = (current_username, toolname,)
@@ -485,9 +496,9 @@ def main():
 
             conn = psycopg2.connect(**params)
             curs = conn.cursor()
-            get_tools_categories(curs, 156)
             command_parser(curs)
             print("Database connection established")
+            conn.commit()
             conn.close()
     except:
         print("Connection failed")
