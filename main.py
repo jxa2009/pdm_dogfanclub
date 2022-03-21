@@ -212,7 +212,7 @@ def run_program(curs):
 
 def edit_new_toolname(curs,toolname, newtoolname):
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"Tool Name\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND p320_18.\"Username = %s \" ;"
+        query = "UPDATE p320_18.\"Tools\" SET \"Tool Name\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND p320_18.\"Tools\".\"Username  \" = %s;"
         params = (newtoolname,toolname,current_username,)
         curs.execute(query, params)
     except:
@@ -222,7 +222,7 @@ def edit_new_toolname(curs,toolname, newtoolname):
     
 def edit_shareable(curs,toolname, newshareable):
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"Shareable\" = %s WHERE p320_18.\"Tools\".\"Tool Name\"  = %s AND p320_18.\"Username = %s \" ;"
+        query = "UPDATE p320_18.\"Tools\" SET \"Shareable\" = %s WHERE p320_18.\"Tools\".\"Tool Name\"  = %s AND p320_18.\"Tools\".\"Username \" = %s;"
         params = (newshareable,toolname,current_username,)
         curs.execute(query, params)
     except:
@@ -232,7 +232,7 @@ def edit_shareable(curs,toolname, newshareable):
 
 def edit_description(curs,toolname, newdescription):
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"Description\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND p320_18.\"Username = %s \" ;" 
+        query = "UPDATE p320_18.\"Tools\" SET \"Description\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND p320_18.\"Tools\".\"Username \"= %s ;" 
         params = (newdescription,toolname,current_username,)
         curs.execute(query, params)  
     except:
@@ -242,7 +242,7 @@ def edit_description(curs,toolname, newdescription):
 
 def delete_new_toolname(curs,toolname):
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"User\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND p320_18.\"Username = %s \" ;"
+        query = "UPDATE p320_18.\"Tools\" SET \"Username\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND p320_18.\"Tools\".\"Username  \" = %s ;"
         params = (NULL,toolname,current_username,)# how to check if no user is here 
         curs.execute(query,params) 
     except:
@@ -252,7 +252,7 @@ def delete_new_toolname(curs,toolname):
 
 def add_new_toolname_User(curs,toolname):
     try:
-        query ="UPDATE p320_18.\"Tools\" SET \"User\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND  p320_18.\"Username IS NULL\" ;"
+        query ="UPDATE p320_18.\"Tools\" SET \"Username\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND  p320_18.\"Tools\".\"Username\" IS NULL ;"
         params = (current_username, toolname,)
         curs.execute(query, params)
     except:
