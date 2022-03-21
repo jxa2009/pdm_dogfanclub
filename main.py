@@ -154,36 +154,38 @@ def run_program(curs):
                 action = parsed_cmd2[0]
 
                 if (action == "toolname"):
-                    print("What would you like new toolname to be type (toolname,add new toolname) ? ")
+                    print ("What toolname would you like to change for toolname( the old toolname)? ")
                     cmd2 = input()
-                    parsed_cmd2 = cmd2.split()
+                    print ("What would you like new toolname to be (the new toolname))? ")
+                    cmd3 = input();
 
-                    toolname = parsed_cmd2[0]
-                    newtoolname = parsed_cmd2[1]
+                    toolname = cmd2
+                    newtoolname = cmd3
                     edit_new_toolname(curs, toolname, newtoolname)
                     print("Added new toolname success")
 
 
                 elif (action == "shareable"):
-                    print(
-                        "What tool whould you like to change status of if its shareable and what is the new status of tool type (toolname, new shareable or unshareable) to be ? ")
+                    print ("What toolname would you like to change for shareable(toolname)? ")
                     cmd2 = input()
-                    parsed_cmd2 = cmd2.split()
+                    print ("What would you like new shareable status to be (the new status shareable or unshareble)? ")
+                    cmd3 = input(); 
 
-                    toolname = parsed_cmd2[0]
-                    newshareable = parsed_cmd2[1]
+                    toolname = cmd2
+                    newshareable = cmd3
                     edit_shareable(curs, toolname, newshareable)
 
                     print("Added newshareable succes")
 
 
                 elif (action == "description"):
-                    print("What would you like new description to be type (toolname, add new description)? ")
+                    print ("What toolname would you like to change for description(toolname)? ")
                     cmd2 = input()
-                    parsed_cmd2 = cmd2.split()
+                    print ("What would you like new description to be (the new description)? ")
+                    cmd3 = input(); 
 
-                    toolname = parsed_cmd2[0]
-                    newdescription = parsed_cmd2[1]
+                    toolname = cmd2
+                    newdescription = cmd3
                     edit_description(curs, toolname, newdescription)
                     print("Added newdescription success")
 
