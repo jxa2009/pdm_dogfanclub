@@ -1,8 +1,3 @@
-from asyncio.windows_events import NULL
-from json import tool
-from operator import le
-import re
-from unicodedata import category
 import psycopg2
 from sshtunnel import SSHTunnelForwarder
 from datetime import date
