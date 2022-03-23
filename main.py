@@ -251,8 +251,8 @@ def edit_description(curs, toolname, newdescription):
 def delete_new_toolname(curs, toolname):
     global current_username
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"Username\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND p320_18.\"Tools\".\"Username  \" = %s ;"
-        params = (NULL, toolname, current_username,)  # how to check if no user is here
+        query = "UPDATE p320_18.\"Tools\" SET \"Username\" = NULL WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND p320_18.\"Tools\".\"Username  \" = %s ;"
+        params =  (toolname, current_username,)  # how to check if no user is here
         curs.execute(query, params)
     except:
         print("delete_new_toolname failure")
