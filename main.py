@@ -153,53 +153,53 @@ def run_program(curs):
                 action = parsed_cmd2[0]
 
                 if (action == "toolname"):
-                    print ("What toolname would you like to change for toolname( the old toolname)? ")
+                    print ("What toolname would you like to change for toolname(barcode))? ")
                     cmd2 = input()
                     print ("What would you like new toolname to be (the new toolname))? ")
                     cmd3 = input()
 
-                    toolname = cmd2
+                    toolbarcode = cmd2
                     newtoolname = cmd3
-                    edit_new_toolname(curs, toolname, newtoolname)
+                    edit_new_toolname(curs, int(toolbarcode), newtoolname)
                     print("Added new toolname success")
 
 
                 elif (action == "shareable"):
-                    print ("What toolname would you like to change for shareable(toolname)? ")
+                    print ("What toolname would you like to change for shareable(barcode)? ")
                     cmd2 = input()
                     print ("What would you like new shareable status to be (the new status shareable or unshareble)? ")
                     cmd3 = input()
 
-                    toolname = cmd2
+                    toolbarcode = cmd2
                     newshareable = cmd3
-                    edit_shareable(curs, toolname, newshareable)
+                    edit_shareable(curs, int(toolbarcode), newshareable)
 
                     print("Added newshareable succes")
 
 
                 elif (action == "description"):
-                    print ("What toolname would you like to change for description(toolname)? ")
+                    print ("What toolname would you like to change for description(barcode)? ")
                     cmd2 = input()
                     print ("What would you like new description to be (the new description)? ")
                     cmd3 = input()
 
-                    toolname = cmd2
+                    toolbarcode = cmd2
                     newdescription = cmd3
-                    edit_description(curs, toolname, newdescription)
+                    edit_description(curs, toolbarcode, newdescription)
                     print("Added newdescription success")
 
                 else:
                     print("invalid command")
             elif sub_action == "delete":
-                print("type the name of the tool you would like to delete")
+                print("type the barcode of the tool you would like to delete(barcode)")
                 cmd2 = input()
-                delete_new_toolname(curs, cmd2)
+                delete_new_toolname(curs, int(cmd2))
                 print("delete tool success")
 
             elif sub_action == "add":
-                print("What tool would you like to add")
+                print("What tool would you like to add (barcode)")
                 cmd2 = input()
-                add_new_toolname_User(curs, cmd2)
+                add_new_toolname_User(curs, int(cmd2))
 
                 print("Added tool succes")
 
@@ -212,11 +212,11 @@ def run_program(curs):
             print("invalid command")
 
 
-def edit_new_toolname(curs, toolname, newtoolname):
+def edit_new_toolname(curs, toolbarcode, newtoolname):
     global current_username
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"Tool Name\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND p320_18.\"Tools\".\"Username  \" = %s;"
-        params = (newtoolname, toolname, current_username,)
+        query = "UPDATE p320_18.\"Tools\" SET \"Tool Name\" = %s WHERE p320_18.\"Tools\".\"Tool Barcode\" = %s AND p320_18.\"Tools\".\"Username  \" = %s;"
+        params = (newtoolname, toolbarcode, current_username,)
         curs.execute(query, params)
     except:
         print("edit_new_toolname failure")
@@ -224,11 +224,11 @@ def edit_new_toolname(curs, toolname, newtoolname):
     return True
 
 
-def edit_shareable(curs, toolname, newshareable):
+def edit_shareable(curs, toolbarcode, newshareable):
     global current_username
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"Shareable\" = %s WHERE p320_18.\"Tools\".\"Tool Name\"  = %s AND p320_18.\"Tools\".\"Username \" = %s;"
-        params = (newshareable, toolname, current_username,)
+        query = "UPDATE p320_18.\"Tools\" SET \"Shareable\" = %s WHERE p320_18.\"Tools\".\"Tool Barcode\"  = %s AND p320_18.\"Tools\".\"Username \" = %s;"
+        params = (newshareable, toolbarcode, current_username,)
         curs.execute(query, params)
     except:
         print("edit_shareable failure")
@@ -236,11 +236,11 @@ def edit_shareable(curs, toolname, newshareable):
     return True
 
 
-def edit_description(curs, toolname, newdescription):
+def edit_description(curs, toolbarcode, newdescription):
     global current_username
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"Description\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND p320_18.\"Tools\".\"Username \"= %s ;"
-        params = (newdescription, toolname, current_username,)
+        query = "UPDATE p320_18.\"Tools\" SET \"Description\" = %s WHERE p320_18.\"Tools\".\"Tool Barcode\" = %s AND p320_18.\"Tools\".\"Username \"= %s ;"
+        params = (newdescription, toolbarcode, current_username,)
         curs.execute(query, params)
     except:
         print("edit_description failure")
@@ -248,11 +248,11 @@ def edit_description(curs, toolname, newdescription):
     return True
 
 
-def delete_new_toolname(curs, toolname):
+def delete_new_toolname(curs, toolbarcode):
     global current_username
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"Username\" = NULL WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND p320_18.\"Tools\".\"Username  \" = %s ;"
-        params =  (toolname, current_username,)  # how to check if no user is here
+        query = "UPDATE p320_18.\"Tools\" SET \"Username\" = NULL WHERE p320_18.\"Tools\".\"Tool Barcode\" = %s AND p320_18.\"Tools\".\"Username  \" = %s ;"
+        params =  (toolbarcode, current_username,)
         curs.execute(query, params)
     except:
         print("delete_new_toolname failure")
@@ -260,11 +260,11 @@ def delete_new_toolname(curs, toolname):
     return True
 
 
-def add_new_toolname_User(curs, toolname):
+def add_new_toolname_User(curs, toolbarcode):
     global current_username
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"Username\" = %s WHERE p320_18.\"Tools\".\"Tool Name\" = %s AND  p320_18.\"Tools\".\"Username\" IS NULL ;"
-        params = (current_username, toolname,)
+        query = "UPDATE p320_18.\"Tools\" SET \"Username\" = %s WHERE p320_18.\"Tools\".\"Tool Barcode\" = %s AND  p320_18.\"Tools\".\"Username\" IS NULL ;"
+        params = (current_username, toolbarcode,)
         curs.execute(query, params)
     except:
         print("add_new_toolname_User failure")
