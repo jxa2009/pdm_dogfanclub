@@ -215,7 +215,7 @@ def run_program(curs):
 def edit_new_toolname(curs, toolbarcode, newtoolname):
     global current_username
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"Tool Name\" = %s WHERE p320_18.\"Tools\".\"Tool Barcode\" = %s AND p320_18.\"Tools\".\"Username  \" = %s;"
+        query = "UPDATE p320_18.\"Tools\" SET \"Tool Name\" = %s WHERE p320_18.\"Tools\".\"Tool Barcode\" = %s AND p320_18.\"Tools\".\"Username\" = %s;"
         params = (newtoolname, toolbarcode, current_username,)
         curs.execute(query, params)
     except:
@@ -227,7 +227,7 @@ def edit_new_toolname(curs, toolbarcode, newtoolname):
 def edit_shareable(curs, toolbarcode, newshareable):
     global current_username
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"Shareable\" = %s WHERE p320_18.\"Tools\".\"Tool Barcode\"  = %s AND p320_18.\"Tools\".\"Username \" = %s;"
+        query = "UPDATE p320_18.\"Tools\" SET \"Shareable\" = %s WHERE p320_18.\"Tools\".\"Tool Barcode\"  = %s AND p320_18.\"Tools\".\"Username\" = %s;"
         params = (newshareable, toolbarcode, current_username,)
         curs.execute(query, params)
     except:
@@ -239,7 +239,7 @@ def edit_shareable(curs, toolbarcode, newshareable):
 def edit_description(curs, toolbarcode, newdescription):
     global current_username
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"Description\" = %s WHERE p320_18.\"Tools\".\"Tool Barcode\" = %s AND p320_18.\"Tools\".\"Username \"= %s ;"
+        query = "UPDATE p320_18.\"Tools\" SET \"Description\" = %s WHERE p320_18.\"Tools\".\"Tool Barcode\" = %s AND p320_18.\"Tools\".\"Username\"= %s ;"
         params = (newdescription, toolbarcode, current_username,)
         curs.execute(query, params)
     except:
@@ -251,10 +251,11 @@ def edit_description(curs, toolbarcode, newdescription):
 def delete_new_toolname(curs, toolbarcode):
     global current_username
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"Username\" = NULL WHERE p320_18.\"Tools\".\"Tool Barcode\" = %s AND p320_18.\"Tools\".\"Username  \" = %s ;"
-        params =  (toolbarcode, current_username,)
+        query = "UPDATE p320_18.\"Tools\" SET \"Username\" = NULL WHERE p320_18.\"Tools\".\"Tool Barcode\" = %s AND p320_18.\"Tools\".\"Username\" = %s ;"
+        params =  (toolbarcode,current_username,)
         curs.execute(query, params)
-    except:
+    except Exception as e:
+        print(e)
         print("delete_new_toolname failure")
         return False
     return True
