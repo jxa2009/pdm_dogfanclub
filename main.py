@@ -587,7 +587,7 @@ def find_tool_by_barcode(curs, barcode):
         False:  if failed to search for a tool by barcode
     """
     try:
-        query = "SELECT \"Tool Name\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s;"
+        query = "SELECT \"Tool Name\", \"Shareable\", \"Description\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s;"
         params = (int(barcode),)
         curs.execute(query, params)
     except Exception as e:
@@ -597,7 +597,9 @@ def find_tool_by_barcode(curs, barcode):
 
     res = curs.fetchone()
     if res != None:
-        print("\n" + res[0] + "\n")
+        print("\nName: " + res[0] + "\n" + res[1] + "\n")
+        if res[2] != None:
+                print(res[2] + "\n")
     else:
         print("\nthere is no tool with barcode: " + barcode + "\n")
     return True
@@ -658,14 +660,16 @@ def find_tool_by_name(curs, name):
     if len(res) > 0:
         print()
         for tool in res:
-            print("Barcode: " + str(tool[0]) + "\n" + "Name: " + tool[1] + "\n" + tool[2] + "\n" + tool[3] + "\n")
+            print("Barcode: " + str(tool[0]) + "\n" + "Name: " + tool[1] + "\n" + tool[2])
+            if tool[3] != None:
+                print(tool[3])
+            print()
     else:
         print("\nthere is no tool that contains the name: " + name + "\n")
     return True
 
 
 
-# This only prints the name of the tools found. It should print more data about the tools
 def find_tool_by_category(curs, category):
     """
     Finds and print the name of all tools of a specified category
@@ -679,7 +683,7 @@ def find_tool_by_category(curs, category):
         False:      if failed to search for a category
     """
     try:
-        query = "SELECT \"Tool Name\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" IN (SELECT \"Tool Barcode\" FROM  p320_18.\"Tool Categories\" WHERE \"Category ID\" = (SELECT \"Category ID\" FROM p320_18.\"Categories\" WHERE \"Category Name\" = %s)) ORDER BY \"Tool Name\" ASC;"
+        query = "SELECT \"Tool Barcode\", \"Tool Name\", \"Shareable\", \"Description\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" IN (SELECT \"Tool Barcode\" FROM  p320_18.\"Tool Categories\" WHERE \"Category ID\" = (SELECT \"Category ID\" FROM p320_18.\"Categories\" WHERE \"Category Name\" = %s)) ORDER BY \"Tool Name\" ASC;"
         params = (category,)
         curs.execute(query, params)
     except Exception as e:
@@ -691,7 +695,10 @@ def find_tool_by_category(curs, category):
     if len(res) > 0:
         print("\n")
         for tool in res:
-            print(tool[0] + '\n')
+            print("Barcode: " + str(tool[0]) + "\n" + "Name: " + tool[1] + "\n" + tool[2])
+            if tool[3] != None:
+                print(tool[3])
+            print()
     else:
         print("\nthere are no tools in the category: " + category + "\n")
     return True
