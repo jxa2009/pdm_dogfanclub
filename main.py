@@ -633,7 +633,6 @@ def borrow_tools(curs, barcode):
 
 
 
-# This only prints the name of the tools found. It should print more data about the tools
 def find_tool_by_name(curs, name):
     """
     Finds and prints the name of every tool that contains the specified string in the tool's name
@@ -647,7 +646,7 @@ def find_tool_by_name(curs, name):
         False:  if failed to search for tools by name
     """
     try:
-        query = "SELECT \"Tool Name\" FROM p320_18.\"Tools\" WHERE \"Tool Name\" LIKE %s ORDER BY \"Tool Name\" ASC;"
+        query = "SELECT \"Tool Barcode\", \"Tool Name\", \"Shareable\", \"Description\" FROM p320_18.\"Tools\" WHERE \"Tool Name\" LIKE %s ORDER BY \"Tool Name\" ASC;"
         params = ('%' + name + '%',)
         curs.execute(query, params)
     except Exception as e:
@@ -657,9 +656,9 @@ def find_tool_by_name(curs, name):
 
     res = curs.fetchall()
     if len(res) > 0:
-        print("\n")
+        print()
         for tool in res:
-            print(tool[0] + "\n")
+            print("Barcode: " + str(tool[0]) + "\n" + "Name: " + tool[1] + "\n" + tool[2] + "\n" + tool[3] + "\n")
     else:
         print("\nthere is no tool that contains the name: " + name + "\n")
     return True
@@ -801,7 +800,8 @@ def main():
             print("Database connection established")
             conn.commit()
             conn.close()
-    except:
+    except Exception as e:
+        print(e)
         print("Connection failed")
 
 
