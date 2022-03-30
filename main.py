@@ -326,7 +326,7 @@ def category_name_exists(curs, category_name):
 
 # return all the categories a tool belongs to
 def get_tools_categories(curs, tool_barcode):
-    query = "SELECT \"Category ID\" FROM p320_18.\"Tool Categories\" WHERE p320_18.\"Tool Categories\".\"Tool Barcode\" = 156"
+    query = "SELECT \"Category ID\" FROM p320_18.\"Tool Categories\" WHERE p320_18.\"Tool Categories\".\"Tool Barcode\" = %s"
     params = (tool_barcode,)
 
     curs.execute(query, params)
