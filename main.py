@@ -1,3 +1,5 @@
+import datetime
+
 import psycopg2
 from sshtunnel import SSHTunnelForwarder
 from datetime import date
@@ -53,7 +55,7 @@ def login_user(curs):
                 print("logged in as {fuser}".format(fuser=user))
                 global current_username
                 current_username = user
-                
+
                 query = "UPDATE p320_18.\"User\" SET \"Last Access Date\" = TO_DATE(%s,'DD/MM/YYYY') WHERE p320_18.\"User\".\"Username\" = %s;"
 
                 date_obj = date.today()
@@ -74,7 +76,7 @@ def login_user(curs):
 def run_program(curs):
     while True:
         # print the command you're gonna add here and how to use it
-        
+
         print("usage:")
         print("\tcategory new [category_name]")
         print("\t         add [tool_barcode] [category_id]")
@@ -84,7 +86,7 @@ def run_program(curs):
         print("\n\tdelete barcode [tool_barcode]")
         print("\n\tborrow barcode [tool_barcode]")
         print("\n\t modify [add,edit,delete]")
-        
+
         cmd = input()
         parsed_cmd = cmd.split()
         cmd_sz = len(parsed_cmd)
@@ -92,7 +94,7 @@ def run_program(curs):
             print("no command passed in")
             continue
         action = parsed_cmd[0]
-        
+
         if action == "category" and cmd_sz > 2:
             sub_action = parsed_cmd[1]
 
@@ -141,6 +143,7 @@ def run_program(curs):
             if sub_action == "barcode":
                 barcode = parsed_cmd[2]
                 borrow_tools(curs, barcode)
+                update_request(curs, barcode)
                 print("Successfully made the request")
         elif action == "modify":
             sub_action = parsed_cmd[1]
@@ -153,9 +156,9 @@ def run_program(curs):
                 action = parsed_cmd2[0]
 
                 if (action == "toolname"):
-                    print ("What toolname would you like to change for toolname(barcode))? ")
+                    print("What toolname would you like to change for toolname(barcode))? ")
                     cmd2 = input()
-                    print ("What would you like new toolname to be (the new toolname))? ")
+                    print("What would you like new toolname to be (the new toolname))? ")
                     cmd3 = input()
 
                     toolbarcode = cmd2
@@ -165,9 +168,9 @@ def run_program(curs):
 
 
                 elif (action == "shareable"):
-                    print ("What toolname would you like to change for shareable(barcode)? ")
+                    print("What toolname would you like to change for shareable(barcode)? ")
                     cmd2 = input()
-                    print ("What would you like new shareable status to be (the new status shareable or unshareble)? ")
+                    print("What would you like new shareable status to be (the new status shareable or unshareble)? ")
                     cmd3 = input()
 
                     toolbarcode = cmd2
@@ -178,9 +181,9 @@ def run_program(curs):
 
 
                 elif (action == "description"):
-                    print ("What toolname would you like to change for description(barcode)? ")
+                    print("What toolname would you like to change for description(barcode)? ")
                     cmd2 = input()
-                    print ("What would you like new description to be (the new description)? ")
+                    print("What would you like new description to be (the new description)? ")
                     cmd3 = input()
 
                     toolbarcode = cmd2
@@ -201,7 +204,7 @@ def run_program(curs):
                 cmd2 = input()
                 add_new_toolname_User(curs, int(cmd2))
 
-                print("Added tool succes")
+                print("Added tool success")
 
 
             else:
@@ -211,6 +214,31 @@ def run_program(curs):
         else:
             print("invalid command")
 
+def update_request(curs, barcode):
+    #Run insert query when borrow request is made
+    try:
+        print("Your Username?")
+        cmd = input()
+        print("Date Required?")
+        cmd1 = input(datetime.date)
+        print("Date Returned?")
+        cmd2 = input(datetime.date)
+        print("Duration?")
+        cmd3 = input()
+        #run this query to insert into table
+        query1 = "INSERT INTO p320_18.\"Request\"(\"Tool Barcode\",\"Username\",\"Tool Owner\",\"Status\",\"Date Required\",\"Date Returned\",\"Duration\") VALUES (%s, %s, %s, %s, TO_DATE(%s,'DD/MM/YYYY'),TO_DATE(%s,'DD/MM/YYYY'), %s)"
+        #run this query to get username associated with toolbarcode requested
+        query2 = "SELECT \"Username\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s"
+        params = (int(barcode), )
+        curs.execute(query2, params)
+        res = curs.fetchall()
+        status = 'pending'
+        params2 = (int(barcode), cmd, str(res), status, cmd1, cmd2, int(cmd3),)
+        curs.execute(query1, params2)
+    except:
+        print("update_request failure")
+        return False
+    return True
 
 def edit_new_toolname(curs, toolbarcode, newtoolname):
     global current_username
@@ -252,7 +280,7 @@ def delete_new_toolname(curs, toolbarcode):
     global current_username
     try:
         query = "UPDATE p320_18.\"Tools\" SET \"Username\" = NULL WHERE p320_18.\"Tools\".\"Tool Barcode\" = %s AND p320_18.\"Tools\".\"Username\" = %s ;"
-        params =  (toolbarcode,current_username,)
+        params = (toolbarcode, current_username,)
         curs.execute(query, params)
     except Exception as e:
         print(e)
@@ -369,6 +397,7 @@ def find_tool_by_barcode(curs, barcode):
         print("\nthere is no tool with barcode: " + barcode + "\n")
     return True
 
+
 def delete_tools_by_barcode(curs, barcode):
     try:
         query = "DELETE FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s AND \"Username is null\";"
@@ -382,14 +411,9 @@ def delete_tools_by_barcode(curs, barcode):
 
 def borrow_tools(curs, barcode):
     try:
-        query = "SELECT \"Tool Barcode\" FROM p320_18.\"Request\" WHERE \"Status\" = 'Accepted';"
+        query = "SELECT \"Tool Barcode\" FROM p320_18.\"Tools\" WHERE \"Shareable\" = 'Shareable';"
         params = (int(barcode),)
         curs.execute(query, params)
-        result = curs.fetchall()
-        print("List of Tools")
-        for row in result:
-            print(row)
-            print("\n")
     except:
         print("BORROW_TOOLS QUERY FAILED")
         return False
@@ -445,7 +469,7 @@ def create_user(curs, user, pwd, f_name, l_name, email):
     # insert query
     query = "INSERT INTO p320_18.\"User\"(\"Username\", \"Password\", \"First Name\", \"Last Name\", \"Email\",\"Creation Date\",\"Last Access Date\") VALUES  ( %s,%s,%s,%s,%s,TO_DATE(%s,'DD/MM/YYYY'),TO_DATE(%s,'DD/MM/YYYY'))"
 
-    params = (user, pwd, f_name, l_name, email, today,today,)
+    params = (user, pwd, f_name, l_name, email, today, today,)
     try:
         curs.execute(query, params)
 
