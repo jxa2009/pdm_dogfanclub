@@ -186,7 +186,7 @@ def run_program(curs):
         elif action == "borrow":
             barcode = parsed_cmd[1]
             update_request(curs, barcode)
-            print("Successfully made the request")
+            print("\nSuccessfully made the request")
 
         elif action == "modify":
             sub_action = parsed_cmd[1]
@@ -263,25 +263,22 @@ def run_program(curs):
 def update_request(curs, barcode):
     # Run insert query when borrow request is made
     try:
-        print("Date Required?")
+        print("\nDate Required?   (MM/DD/YYYY)")
         cmd1 = input()
-        date1 = datetime.datetime.strptime(cmd1, "%d/%m/%Y").date()
-        # The tool hasn't been returned yet so we don't know the return date
-        print("Date Returned?")
+        date1 = datetime.datetime.strptime(cmd1, "%m/%d/%Y").date()
+        print("\nDuration in number of days?")
         cmd2 = input()
-        date2 = datetime.datetime.strptime(cmd2, "%d/%m/%Y").date()
-        print("Duration?")
-        cmd3 = date2-date1
-        print(cmd3.days)
+
         # run this query to insert into table
-        query1 = "INSERT INTO p320_18.\"Request\"(\"Tool Barcode\",\"Username\",\"Tool Owner\",\"Status\",\"Date Required\",\"Date Returned\",\"Duration\") VALUES (%s, %s, %s, %s, TO_DATE(%s,'DD/MM/YYYY'),TO_DATE(%s,'DD/MM/YYYY'), %s)"
+        query1 = "INSERT INTO p320_18.\"Request\"(\"Tool Barcode\",\"Username\",\"Tool Owner\",\"Status\",\"Date Required\",\"Duration\") VALUES (%s, %s, %s, %s, TO_DATE(%s,'MM/DD/YYYY'), %s)"
         # run this query to get username associated with tool requested
         query2 = "SELECT \"Username\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s"
+
         params = (int(barcode),)
         curs.execute(query2, params)
         res = curs.fetchall()
         status = 'Pending'
-        params2 = (int(barcode), current_username, res[0], status, date1.strftime("%d/%m/%Y"), date2.strftime("%d/%m/%Y"), int(cmd3.days),)
+        params2 = (int(barcode), current_username, res[0], status, date1.strftime("%m/%d/%Y"), int(cmd2),)
         curs.execute(query1, params2)
     except Exception as e:
         print(e)
@@ -552,7 +549,6 @@ def add_new_category(curs, name):
     return True
 
 
-# This only prints the name of the tool found. It should print more data about the tool
 def find_tool_by_barcode(curs, barcode):
     """
     Finds and prints the name of the tool that has the specified barcode
