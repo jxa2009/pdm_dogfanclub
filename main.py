@@ -558,7 +558,11 @@ def add_new_category(curs, name):
     return True
 
 
+<<<<<<< HEAD
 # This only prints the name of the tool found. It should print more data about the tool
+=======
+
+>>>>>>> e103574 (removed comments)
 def find_tool_by_barcode(curs, barcode):
     """
     Finds and prints the name of the tool that has the specified barcode
