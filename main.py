@@ -127,7 +127,7 @@ def run_program(curs):
         print("\t       name     [tool_name]")
         print("\t       category [tool_category]")
         print("\n\tdelete barcode [tool_barcode]")
-        print("\n\tborrow barcode [tool_barcode]")
+        print("\n\tborrow [tool_barcode]")
         print("\n\t modify [add,edit,delete]")
 
         cmd = input()
@@ -183,14 +183,10 @@ def run_program(curs):
                 delete_tools_by_barcode(curs, barcode)
                 print("Successfully deleted")
 
-        elif action == "borrow" and cmd_sz > 2:
-            sub_action = parsed_cmd[1]
-            if sub_action == "barcode":
-                barcode = parsed_cmd[2]
-                # This function does nothing
-                borrow_tools(curs, barcode)
-                update_request(curs, barcode)
-                print("Successfully made the request")
+        elif action == "borrow":
+            barcode = parsed_cmd[1]
+            update_request(curs, barcode)
+            print("Successfully made the request")
 
         elif action == "modify":
             sub_action = parsed_cmd[1]
@@ -279,14 +275,13 @@ def update_request(curs, barcode):
         print(cmd3.days)
         # run this query to insert into table
         query1 = "INSERT INTO p320_18.\"Request\"(\"Tool Barcode\",\"Username\",\"Tool Owner\",\"Status\",\"Date Required\",\"Date Returned\",\"Duration\") VALUES (%s, %s, %s, %s, TO_DATE(%s,'DD/MM/YYYY'),TO_DATE(%s,'DD/MM/YYYY'), %s)"
-        # run this query to get username associated with toolbarcode requested
+        # run this query to get username associated with tool requested
         query2 = "SELECT \"Username\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s"
         params = (int(barcode),)
         curs.execute(query2, params)
         res = curs.fetchall()
-        res2 = str(res).strip("([('')]),")
         status = 'Pending'
-        params2 = (int(barcode), current_username, res2, status, date1.strftime("%d/%m/%Y"), date2.strftime("%d/%m/%Y"), int(cmd3.days),)
+        params2 = (int(barcode), current_username, res[0], status, date1.strftime("%d/%m/%Y"), date2.strftime("%d/%m/%Y"), int(cmd3.days),)
         curs.execute(query1, params2)
     except Exception as e:
         print(e)
@@ -557,11 +552,7 @@ def add_new_category(curs, name):
     return True
 
 
-<<<<<<< HEAD
 # This only prints the name of the tool found. It should print more data about the tool
-=======
-
->>>>>>> e103574 (removed comments)
 def find_tool_by_barcode(curs, barcode):
     """
     Finds and prints the name of the tool that has the specified barcode
@@ -605,20 +596,6 @@ def delete_tools_by_barcode(curs, barcode):
         print("DELETE_TOOLS_BY_BARCODE QUERY FAILED")
         return False
     return True
-
-
-# This selects a tool barcode but does nothing with it
-def borrow_tools(curs, barcode):
-    try:
-        query = "SELECT \"Tool Barcode\" FROM p320_18.\"Tools\" WHERE \"Shareable\" = 'Shareable';"
-        params = (int(barcode),)
-        curs.execute(query, params)
-    except Exception as e:
-        print(e)
-        print("BORROW_TOOLS QUERY FAILED")
-        return False
-    return True
-
 
 def find_tool_by_name(curs, name):
     """
