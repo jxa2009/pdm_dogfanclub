@@ -267,17 +267,16 @@ def run_program(curs):
 def update_request(curs, barcode):
     # Run insert query when borrow request is made
     try:
-        # The username is already a global variable
-        print("Your Username?")
-        cmd = input()
         print("Date Required?")
-        cmd1 = datetime.date.today().strftime("%d/%m/%Y")
-
+        cmd1 = input()
+        date1 = datetime.datetime.strptime(cmd1, "%d/%m/%Y").date()
         # The tool hasn't been returned yet so we don't know the return date
         print("Date Returned?")
-        cmd2 = datetime.date.today().strftime("%d/%m/%Y")
+        cmd2 = input()
+        date2 = datetime.datetime.strptime(cmd2, "%d/%m/%Y").date()
         print("Duration?")
-        cmd3 = int(input())
+        cmd3 = date2-date1
+        print(cmd3.days)
         # run this query to insert into table
         query1 = "INSERT INTO p320_18.\"Request\"(\"Tool Barcode\",\"Username\",\"Tool Owner\",\"Status\",\"Date Required\",\"Date Returned\",\"Duration\") VALUES (%s, %s, %s, %s, TO_DATE(%s,'DD/MM/YYYY'),TO_DATE(%s,'DD/MM/YYYY'), %s)"
         # run this query to get username associated with toolbarcode requested
@@ -287,7 +286,7 @@ def update_request(curs, barcode):
         res = curs.fetchall()
         res2 = str(res).strip("([('')]),")
         status = 'Pending'
-        params2 = (int(barcode), cmd, res2, status, cmd1, cmd2, int(cmd3),)
+        params2 = (int(barcode), current_username, res2, status, date1.strftime("%d/%m/%Y"), date2.strftime("%d/%m/%Y"), int(cmd3.days),)
         curs.execute(query1, params2)
     except Exception as e:
         print(e)
