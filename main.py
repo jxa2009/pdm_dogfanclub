@@ -13,7 +13,6 @@ dbName = "p320_18"
 current_username = ""
 
 
-
 # create a login_info.txt file with two lines: a line containing your username on the first and password on the second
 def get_login_info():
     """
@@ -22,7 +21,7 @@ def get_login_info():
 
     Arguments:
         None
-    
+
     Returns:
         None
     """
@@ -31,7 +30,6 @@ def get_login_info():
     cs_username = f.readline().strip()
     cs_password = f.readline().strip()
     return
-
 
 
 def command_parser(curs):
@@ -49,7 +47,6 @@ def command_parser(curs):
     # query usernames and passwords and make sure it exists
     login_user(curs)
     run_program(curs)
-
 
 
 def login_user(curs):
@@ -109,10 +106,9 @@ def login_user(curs):
             print("invalid command")
 
 
-
 def run_program(curs):
     """
-    While loop that parses a user's commands and 
+    While loop that parses a user's commands and
     calls the correct functions for these commands
 
     Arguments:
@@ -268,37 +264,36 @@ def run_program(curs):
             print("invalid command")
 
 
-
 def update_request(curs, barcode):
-    #Run insert query when borrow request is made
+    # Run insert query when borrow request is made
     try:
         # The username is already a global variable
         print("Your Username?")
         cmd = input()
         print("Date Required?")
-        cmd1 = input(datetime.date)
+        cmd1 = datetime.date.today().strftime("%d/%m/%Y")
 
         # The tool hasn't been returned yet so we don't know the return date
         print("Date Returned?")
-        cmd2 = input(datetime.date)
+        cmd2 = datetime.date.today().strftime("%d/%m/%Y")
         print("Duration?")
-        cmd3 = input()
-        #run this query to insert into table
+        cmd3 = int(input())
+        # run this query to insert into table
         query1 = "INSERT INTO p320_18.\"Request\"(\"Tool Barcode\",\"Username\",\"Tool Owner\",\"Status\",\"Date Required\",\"Date Returned\",\"Duration\") VALUES (%s, %s, %s, %s, TO_DATE(%s,'DD/MM/YYYY'),TO_DATE(%s,'DD/MM/YYYY'), %s)"
-        #run this query to get username associated with toolbarcode requested
+        # run this query to get username associated with toolbarcode requested
         query2 = "SELECT \"Username\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s"
-        params = (int(barcode), )
+        params = (int(barcode),)
         curs.execute(query2, params)
         res = curs.fetchall()
+        res2 = str(res).strip("([('')]),")
         status = 'Pending'
-        params2 = (int(barcode), cmd, str(res), status, cmd1, cmd2, int(cmd3),)
+        params2 = (int(barcode), cmd, res2, status, cmd1, cmd2, int(cmd3),)
         curs.execute(query1, params2)
     except Exception as e:
         print(e)
         print("update_request failure")
         return False
     return True
-
 
 
 def edit_new_toolname(curs, toolbarcode, newtoolname):
@@ -326,7 +321,6 @@ def edit_new_toolname(curs, toolbarcode, newtoolname):
     return True
 
 
-
 def edit_shareable(curs, toolbarcode, newshareable):
     """
     Updates the Shareable attribute of a user's tool
@@ -350,7 +344,6 @@ def edit_shareable(curs, toolbarcode, newshareable):
         print("edit_shareable failure")
         return False
     return True
-
 
 
 def edit_description(curs, toolbarcode, newdescription):
@@ -378,7 +371,6 @@ def edit_description(curs, toolbarcode, newdescription):
     return True
 
 
-
 def delete_new_toolname(curs, toolbarcode):
     """
     Removes a tool form a user's catalog
@@ -401,7 +393,6 @@ def delete_new_toolname(curs, toolbarcode):
         print("delete_new_toolname failure")
         return False
     return True
-
 
 
 def add_new_toolname_User(curs, toolbarcode):
@@ -428,7 +419,6 @@ def add_new_toolname_User(curs, toolbarcode):
     return True
 
 
-
 # This might need a (try: except:) around the query
 def category_id_exists(curs, category_id):
     """
@@ -450,7 +440,6 @@ def category_id_exists(curs, category_id):
         if id == category_id:
             return True
     return False
-
 
 
 # This might need a (try: except:) around the query
@@ -477,7 +466,6 @@ def category_name_exists(curs, category_name):
     return False
 
 
-
 # This might need a (try: except:) around the query
 def get_tools_categories(curs, tool_barcode):
     """
@@ -498,7 +486,6 @@ def get_tools_categories(curs, tool_barcode):
     res = curs.fetchall()
 
     return res
-
 
 
 def add_category_to_tool(curs, tool_barcode, category_id):
@@ -536,7 +523,6 @@ def add_category_to_tool(curs, tool_barcode, category_id):
     return True
 
 
-
 def add_new_category(curs, name):
     """
     Adds the specified category to the database
@@ -572,7 +558,6 @@ def add_new_category(curs, name):
     return True
 
 
-
 # This only prints the name of the tool found. It should print more data about the tool
 def find_tool_by_barcode(curs, barcode):
     """
@@ -599,11 +584,10 @@ def find_tool_by_barcode(curs, barcode):
     if res != None:
         print("\nName: " + res[0] + "\n" + res[1] + "\n")
         if res[2] != None:
-                print(res[2] + "\n")
+            print(res[2] + "\n")
     else:
         print("\nthere is no tool with barcode: " + barcode + "\n")
     return True
-
 
 
 # This deletes a tool from the database rather than deleting the tool form the user's catalog
@@ -620,7 +604,6 @@ def delete_tools_by_barcode(curs, barcode):
     return True
 
 
-
 # This selects a tool barcode but does nothing with it
 def borrow_tools(curs, barcode):
     try:
@@ -632,7 +615,6 @@ def borrow_tools(curs, barcode):
         print("BORROW_TOOLS QUERY FAILED")
         return False
     return True
-
 
 
 def find_tool_by_name(curs, name):
@@ -669,7 +651,6 @@ def find_tool_by_name(curs, name):
     return True
 
 
-
 def find_tool_by_category(curs, category):
     """
     Finds and print the name of all tools of a specified category
@@ -677,7 +658,7 @@ def find_tool_by_category(curs, category):
     Arguments:
         curs:       the connection cursor
         category:   the category to be searched for
-    
+
     Returns:
         True:       if successfully search for a category
         False:      if failed to search for a category
@@ -702,7 +683,6 @@ def find_tool_by_category(curs, category):
     else:
         print("\nthere are no tools in the category: " + category + "\n")
     return True
-
 
 
 def create_user(curs, user, pwd, f_name, l_name, email):
@@ -743,7 +723,6 @@ def create_user(curs, user, pwd, f_name, l_name, email):
     return True
 
 
-
 def user_exists(curs, user, pwd):
     """
     Returns True if the selected user is in the database
@@ -770,7 +749,6 @@ def user_exists(curs, user, pwd):
         if u == user and p == pwd:
             return True
     return False
-
 
 
 def main():
