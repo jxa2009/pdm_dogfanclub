@@ -722,19 +722,6 @@ def find_tool_by_barcode(curs, barcode, catalog):
     return True
 
 
-# This deletes a tool from the database rather than deleting the tool form the user's catalog
-# We don't want a user to be able to do this
-def delete_tools_by_barcode(curs, barcode):
-    try:
-        query = "DELETE FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s AND \"Username is null\";"
-        params = (int(barcode),)
-        curs.execute(query, params)
-    except Exception as e:
-        print(e)
-        print("DELETE_TOOLS_BY_BARCODE QUERY FAILED")
-        return False
-    return True
-
 def find_tool_by_name(curs, name):
     """
     Finds and prints the name of every tool that contains the specified string in the tool's name
