@@ -173,11 +173,11 @@ def run_program(curs):
 
             elif sub_action == "name":
                 name = parsed_cmd[2]
-                find_tool_by_name(curs, name)
+                find_tool_by_name(curs, name, catalog=False)
 
             elif sub_action == "category":
                 category = parsed_cmd[2]
-                find_tool_by_category(curs, category)
+                find_tool_by_category(curs, category, catalog=False)
 
             else:
                 print("invalid search parameter")
@@ -256,11 +256,11 @@ def run_program(curs):
 
                 elif sub_action2 == "name":
                     name = parsed_cmd[3]
-                    find_tool_by_name(curs, name)
+                    find_tool_by_name(curs, name, catalog=True)
 
                 elif sub_action2 == "category":
                     category = parsed_cmd[3]
-                    find_tool_by_category(curs, category)
+                    find_tool_by_category(curs, category, catalog=True)
 
                 else:
                     print("invalid search parameter")
@@ -716,27 +716,34 @@ def find_tool_by_barcode(curs, barcode, catalog):
             print(res[2] + "\n")
     else:
         if catalog:
-            print("\nTool with barcode " + barcode + " is not in you're catalog")
+            print("\nYou do not own a tool with the barcode: " + barcode + "\n")
         else:
             print("\nThere is no tool with barcode: " + barcode + "\n")
     return True
 
 
-def find_tool_by_name(curs, name):
+def find_tool_by_name(curs, name, catalog):
     """
     Finds and prints the name of every tool that contains the specified string in the tool's name
 
     Arguments:
         curs:   the connection cursor
         name:   the string to search for
+        catalog:    True if searching through the user's catalog,
+                    False if searching through the entire database
 
     Returns:
         True:   if successfully seached for tools by name
         False:  if failed to search for tools by name
     """
     try:
-        query = "SELECT \"Tool Barcode\", \"Tool Name\", \"Shareable\", \"Description\" FROM p320_18.\"Tools\" WHERE \"Tool Name\" LIKE %s ORDER BY \"Tool Name\" ASC;"
-        params = ('%' + name + '%',)
+        global current_username
+        if catalog:
+            query = "SELECT \"Tool Barcode\", \"Tool Name\", \"Shareable\", \"Description\" FROM p320_18.\"Tools\" WHERE \"Tool Name\" LIKE %s AND \"Username\" = %s ORDER BY \"Tool Name\" ASC;"
+            params = ('%' + name + '%', current_username)
+        else:
+            query = "SELECT \"Tool Barcode\", \"Tool Name\", \"Shareable\", \"Description\" FROM p320_18.\"Tools\" WHERE \"Tool Name\" LIKE %s ORDER BY \"Tool Name\" ASC;"
+            params = ('%' + name + '%',)
         curs.execute(query, params)
     except Exception as e:
         print(e)
@@ -752,25 +759,35 @@ def find_tool_by_name(curs, name):
                 print(tool[3])
             print()
     else:
-        print("\nthere is no tool that contains the name: " + name + "\n")
+        if catalog:
+            print("\nYou do not own any tools that contain the name: " + name + "\n")
+        else:
+            print("\nThere are no tools that contain the name: " + name + "\n")
     return True
 
 
-def find_tool_by_category(curs, category):
+def find_tool_by_category(curs, category, catalog):
     """
     Finds and print the name of all tools of a specified category
 
     Arguments:
         curs:       the connection cursor
         category:   the category to be searched for
+        catalog:    True if searching through the user's catalog,
+                    False if searching through the entire database
 
     Returns:
         True:       if successfully search for a category
         False:      if failed to search for a category
     """
     try:
-        query = "SELECT \"Tool Barcode\", \"Tool Name\", \"Shareable\", \"Description\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" IN (SELECT \"Tool Barcode\" FROM  p320_18.\"Tool Categories\" WHERE \"Category ID\" = (SELECT \"Category ID\" FROM p320_18.\"Categories\" WHERE \"Category Name\" = %s)) ORDER BY \"Tool Name\" ASC;"
-        params = (category,)
+        global current_username
+        if catalog:
+            query = "SELECT \"Tool Barcode\", \"Tool Name\", \"Shareable\", \"Description\" FROM p320_18.\"Tools\" WHERE \"Username\" = %s AND \"Tool Barcode\" IN (SELECT \"Tool Barcode\" FROM  p320_18.\"Tool Categories\" WHERE \"Category ID\" = (SELECT \"Category ID\" FROM p320_18.\"Categories\" WHERE \"Category Name\" = %s)) ORDER BY \"Tool Name\" ASC;"
+            params = (current_username, category,)
+        else:
+            query = "SELECT \"Tool Barcode\", \"Tool Name\", \"Shareable\", \"Description\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" IN (SELECT \"Tool Barcode\" FROM  p320_18.\"Tool Categories\" WHERE \"Category ID\" = (SELECT \"Category ID\" FROM p320_18.\"Categories\" WHERE \"Category Name\" = %s)) ORDER BY \"Tool Name\" ASC;"
+            params = (category,)
         curs.execute(query, params)
     except Exception as e:
         print(e)
@@ -786,7 +803,10 @@ def find_tool_by_category(curs, category):
                 print(tool[3])
             print()
     else:
-        print("\nthere are no tools in the category: " + category + "\n")
+        if catalog:
+            print("\nYou do not own any tools in the category: " + category + "\n")
+        else:
+            print("\nthere are no tools in the category: " + category + "\n")
     return True
 
 
