@@ -2,6 +2,7 @@
 Tools Domain Main file
 """
 
+from ast import If
 import datetime
 import psycopg2
 from sshtunnel import SSHTunnelForwarder
@@ -186,7 +187,6 @@ def run_program(curs):
         elif action == "borrow":
             barcode = parsed_cmd[1]
             update_request(curs, barcode)
-            print("\nSuccessfully made the request")
 
         elif action == "modify":
             sub_action = parsed_cmd[1]
@@ -261,8 +261,40 @@ def run_program(curs):
 
 
 def update_request(curs, barcode):
+    """
+    Checks to see if a request can be made. If so, add the request
+    to the request table. If the tool is not sharable, deny the request.
+    If the tool is unowned, prompt the user to add the tool tp their catalog
+
+    Argumets:
+        curs:       the connection cursor
+        barcode:    the barcode of the tool to be requested for
+
+    Returns:
+        True:       if queries pass
+        False:      if queries fail
+    """
     # Run insert query when borrow request is made
     try:
+        if not is_tool_owned(curs, barcode):
+            print("\nThis tool is not owned.")
+            
+            while (True):
+                reply = str(input("\nWould you like to add the tool to your catalog? (y/n):\n").lower().strip())
+                if reply[:1] == 'y':
+                    add_new_toolname_User(curs, barcode)
+                    print("\nTool successfully added")
+                    return True
+                elif    reply[:1] == 'n':
+                    print("Tool has not been added to your catalog")
+                    return True
+                else:
+                    print("\nInvalid input. Please enter: 'yes' or 'no'")
+
+        elif not is_tool_shareable(curs, barcode):
+            print("\nThis tool is not sharable at the moment")
+            return False
+
         print("\nDate Required?   (MM/DD/YYYY)")
         cmd1 = input()
         date1 = datetime.datetime.strptime(cmd1, "%m/%d/%Y").date()
@@ -284,7 +316,56 @@ def update_request(curs, barcode):
         print(e)
         print("update_request failure")
         return False
+    print("\nSuccessfully made the request")
     return True
+
+
+def is_tool_owned(curs, barcode):
+    """
+    Determines if a tool has an owner
+
+    Arguments:
+        curs:       the connection cursor
+        barcode:    the barcode of the tool to check
+    
+    Returns:
+        True:       if the tool is owned by someone
+        False:      if the tool is unowned
+    """
+    try:
+        query = "SELECT \"Username\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s;"
+        params = (barcode,)
+        curs.execute(query, params)
+    except Exception as e:
+        print(e)
+        print("is_tool_owned failed query")
+        return False
+    res = curs.fetchone()
+    return not res[0] == None
+
+
+def is_tool_shareable(curs, barcode):
+    """
+    Determines if a tool is shareable
+
+    Aguments:
+        curse:      the connection cursor
+        barcode:    the barcode of the tool to check
+
+    Returns:
+        True:       if the tool is shareable
+        False:      if the tool is unshareable
+    """
+    try:
+        query = "SELECT \"Shareable\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s;"
+        params = (barcode,)
+        curs.execute(query, params)
+    except Exception as e:
+        print(e)
+        print("is_tool_sharable failed query")
+        return False
+    res = curs.fetchone()
+    return res[0] == 'Shareable'
 
 
 def edit_new_toolname(curs, toolbarcode, newtoolname):
