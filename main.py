@@ -130,7 +130,8 @@ def run_program(curs):
         print("\n\tdelete barcode [tool_barcode]")
         print("\n\tborrow [tool_barcode]")
         print("\n\t modify [add,edit,delete]")
-
+        print("\n\t requests [incoming,outgoing]")
+        
         cmd = input()
         parsed_cmd = cmd.split()
         cmd_sz = len(parsed_cmd)
@@ -253,12 +254,43 @@ def run_program(curs):
 
             else:
                 print("invalid command")
-
+        #incoming requests
+        elif action == "requests":
+            sub_action = parsed_cmd[1]
+            
+            if sub_action == "incoming":
+                print("incoming request")
+                incoming_request(curs, )
+            elif sub_action == "outgoing":
+                print("outgoing requests")
+                outgoing_request(curs, )
+        
         elif (action == "exit"):
             break
         else:
             print("invalid command")
-
+#incoming request stub
+def incoming_request(curs, ):
+    try:
+        query = "UPDATE p320_18.\"Tools\" SET \"Tool Name\" = %s WHERE p320_18.\"Tools\".\"Tool Barcode\" = %s AND p320_18.\"Tools\".\"Username\" = %s;"
+        params = (newtoolname, toolbarcode, current_username,)
+        curs.execute(query, params)
+    except Exception as e:
+        print(e)
+        print("incoming_request failure")
+        return False
+    return True
+#outgoing request stub
+def outgoing_request(curs, ):
+    try:
+        query = "UPDATE p320_18.\"Tools\" SET \"Tool Name\" = %s WHERE p320_18.\"Tools\".\"Tool Barcode\" = %s AND p320_18.\"Tools\".\"Username\" = %s;"
+        params = (newtoolname, toolbarcode, current_username,)
+        curs.execute(query, params)
+    except Exception as e:
+        print(e)
+        print("outgoing_request failure")
+        return False
+    return True
 
 def update_request(curs, barcode):
     """
