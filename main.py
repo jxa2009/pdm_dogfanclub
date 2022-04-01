@@ -127,7 +127,6 @@ def run_program(curs):
         print("\n\tsearch barcode  [tool_barcode]")
         print("\t       name     [tool_name]")
         print("\t       category [tool_category]")
-        print("\n\tdelete barcode [tool_barcode]")
         print("\n\tborrow [tool_barcode]")
         print("\n\t modify [add,edit,delete]")
 
@@ -274,7 +273,6 @@ def update_request(curs, barcode):
         True:       if queries pass
         False:      if queries fail
     """
-    # Run insert query when borrow request is made
     try:
         if not is_tool_owned(curs, barcode):
             print("\nThis tool is not owned.")
