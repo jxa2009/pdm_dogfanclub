@@ -2,7 +2,6 @@
 Tools Domain Main file
 """
 
-from ast import If
 import datetime
 import psycopg2
 from sshtunnel import SSHTunnelForwarder
@@ -127,9 +126,15 @@ def run_program(curs):
         print("\n\tsearch barcode  [tool_barcode]")
         print("\t       name     [tool_name]")
         print("\t       category [tool_category]")
+        print("\n\tcatalog add")
+        print("\t        edit")
+        print("\t        delete")
+        print("\n\tcatalog search barcode  [tool_barcode]")
+        print("\t        search name     [tool_name]")
+        print("\t        search category [tool_category]")
+        print("\n\trequests incoming")
+        print("\t         outgoing")
         print("\n\tborrow [tool_barcode]")
-        print("\n\t modify [add,edit,delete]")
-        print("\n\t requests [incoming,outgoing]")
         
         cmd = input()
         parsed_cmd = cmd.split()
@@ -164,7 +169,7 @@ def run_program(curs):
 
             if sub_action == "barcode":
                 barcode = parsed_cmd[2]
-                find_tool_by_barcode(curs, barcode)
+                find_tool_by_barcode(curs, barcode, catalog=False)
 
             elif sub_action == "name":
                 name = parsed_cmd[2]
@@ -177,18 +182,11 @@ def run_program(curs):
             else:
                 print("invalid search parameter")
 
-        elif action == "delete" and cmd_sz > 2:
-            sub_action = parsed_cmd[1]
-            if sub_action == "barcode":
-                barcode = parsed_cmd[2]
-                delete_tools_by_barcode(curs, barcode)
-                print("Successfully deleted")
-
         elif action == "borrow":
             barcode = parsed_cmd[1]
             update_request(curs, barcode)
 
-        elif action == "modify":
+        elif action == "catalog":
             sub_action = parsed_cmd[1]
 
             if sub_action == "edit":
@@ -247,12 +245,29 @@ def run_program(curs):
                 print("What tool would you like to add (barcode)")
                 cmd2 = input()
                 add_new_toolname_User(curs, int(cmd2))
-
                 print("Added tool success")
 
+            elif sub_action == "search" and cmd_sz == 4:
+                sub_action2 = parsed_cmd[2]
+
+                if sub_action2 == "barcode":
+                    barcode = parsed_cmd[3]
+                    find_tool_by_barcode(curs, barcode, catalog=True)
+
+                elif sub_action2 == "name":
+                    name = parsed_cmd[3]
+                    find_tool_by_name(curs, name)
+
+                elif sub_action2 == "category":
+                    category = parsed_cmd[3]
+                    find_tool_by_category(curs, category)
+
+                else:
+                    print("invalid search parameter")
 
             else:
                 print("invalid command")
+
         #incoming requests
         elif action == "requests":
             sub_action = parsed_cmd[1]
@@ -268,6 +283,8 @@ def run_program(curs):
             break
         else:
             print("invalid command")
+
+
 #incoming request stub
 def incoming_request(curs, ):
     try:
@@ -279,6 +296,8 @@ def incoming_request(curs, ):
         print("incoming_request failure")
         return False
     return True
+
+
 #outgoing request stub
 def outgoing_request(curs, ):
     try:
@@ -290,6 +309,7 @@ def outgoing_request(curs, ):
         print("outgoing_request failure")
         return False
     return True
+
 
 def update_request(curs, barcode):
     """
@@ -315,7 +335,7 @@ def update_request(curs, barcode):
                     add_new_toolname_User(curs, barcode)
                     print("\nTool successfully added")
                     return True
-                elif    reply[:1] == 'n':
+                elif reply[:1] == 'n':
                     print("Tool has not been added to your catalog")
                     return True
                 else:
@@ -660,21 +680,29 @@ def add_new_category(curs, name):
     return True
 
 
-def find_tool_by_barcode(curs, barcode):
+def find_tool_by_barcode(curs, barcode, catalog):
     """
     Finds and prints the name of the tool that has the specified barcode
 
     Arguments:
         curs:       the connection cursor
         barcode:    the barcode to search for
+        catalog:    True if searching through the user's catalog,
+                    False if searching through the entire database
 
     Returns:
         True:   if successfully seached for a tool by barcode
         False:  if failed to search for a tool by barcode
     """
+    global current_username
     try:
-        query = "SELECT \"Tool Name\", \"Shareable\", \"Description\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s;"
-        params = (int(barcode),)
+        if catalog:
+            query = "SELECT \"Tool Name\", \"Shareable\", \"Description\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s AND \"Username\" = %s;"
+            params = (int(barcode), current_username)
+        else:
+            query = "SELECT \"Tool Name\", \"Shareable\", \"Description\" FROM p320_18.\"Tools\" WHERE \"Tool Barcode\" = %s;"
+            params = (int(barcode),)
+
         curs.execute(query, params)
     except Exception as e:
         print(e)
@@ -687,7 +715,10 @@ def find_tool_by_barcode(curs, barcode):
         if res[2] != None:
             print(res[2] + "\n")
     else:
-        print("\nthere is no tool with barcode: " + barcode + "\n")
+        if catalog:
+            print("\nTool with barcode " + barcode + " is not in you're catalog")
+        else:
+            print("\nThere is no tool with barcode: " + barcode + "\n")
     return True
 
 
