@@ -275,6 +275,7 @@ def run_program(curs):
             if sub_action == "incoming":
                 print("incoming request")
                 incoming_request(curs, )
+
             elif sub_action == "outgoing":
                 print("outgoing requests")
                 outgoing_request(curs, )
@@ -287,9 +288,10 @@ def run_program(curs):
 
 #incoming request stub
 def incoming_request(curs, ):
+    global current_username
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"Tool Name\" = %s WHERE p320_18.\"Tools\".\"Tool Barcode\" = %s AND p320_18.\"Tools\".\"Username\" = %s;"
-        params = (newtoolname, toolbarcode, current_username,)
+        query = "SELECT T.\"Tool Name\", R.\"Status\", R.\"Date Required\", R.\"Duration\" FROM p320_18.\"Tools\" T, p320_18.\"Request\" R WHERE R.\"Tool Owner\" = %s AND R.\"Tool Barcode\" = T.\"Tool Barcode\";"
+        params = (current_username,)
         curs.execute(query, params)
     except Exception as e:
         print(e)
@@ -300,6 +302,7 @@ def incoming_request(curs, ):
 
 #outgoing request stub
 def outgoing_request(curs, ):
+    global current_username
     try:
         query = "UPDATE p320_18.\"Tools\" SET \"Tool Name\" = %s WHERE p320_18.\"Tools\".\"Tool Barcode\" = %s AND p320_18.\"Tools\".\"Username\" = %s;"
         params = (newtoolname, toolbarcode, current_username,)
