@@ -3,6 +3,7 @@ Tools Domain Main file
 """
 
 import datetime
+from shutil import register_unpack_format
 import psycopg2
 from sshtunnel import SSHTunnelForwarder
 from datetime import date
@@ -286,17 +287,87 @@ def run_program(curs):
             print("invalid command")
 
 
-#incoming request stub
-def incoming_request(curs, ):
+def incoming_request(curs):
+    global current_username
+    exit = False
+    while(not exit):
+        exit_subaction = False
+        try:
+            query = "SELECT T.\"Tool Name\", R.\"Status\", R.\"Date Required\", R.\"Duration\", R.\"Tool Barcode\", R.\"Username\" FROM p320_18.\"Tools\" T, p320_18.\"Request\" R WHERE R.\"Tool Owner\" = %s AND R.\"Tool Barcode\" = T.\"Tool Barcode\";"
+            params = (current_username,)
+            curs.execute(query, params)
+        except Exception as e:
+            print(e)
+            print("incoming_request failure")
+            return False
+
+        res = curs.fetchall()
+        if len(res) > 0:
+            print()
+            for i in range(len(res)):
+                print(str(i+1) + "\tTool Name:\t" + res[i][0] + "\n\tStatus:\t\t" + res[i][1] + "\n\tDate Required:\t" + res[i][2].strftime('%m/%d/%Y') + "\n\tDuration:\t" + str(res[i][3]) + " days\n")
+        else:
+            print("\nYou do not hav any incoming requests\n")
+            return True
+
+        while(not exit_subaction):
+            reply = input("\nSelect a Tool request to manage by inputting the row number of the tool or type 'exit' to exit the request manager\n")
+            if reply[:1] == 'e' or reply[:1] == 'E':
+                print("Exiting request manager")
+                exit_subaction = True
+                exit = True
+            elif reply.isnumeric():
+                row = int(reply) - 1
+                if row < len(res) and row >= 0:
+
+                    if res[row][1] != 'Pending':
+                        print("\nThis tool has already been " + res[row][1])
+                        continue
+                    else:
+                        while(True):
+                            reply2 = str(input("\nType 'accept' to accept the request, 'deny' to deny the request, or 'cancel' to exit\n").lower().strip())
+                            if reply2[:1] == 'a' or reply2[:1] == 'A':
+                                manage_request(curs, res[row][4], res[row][5], res[row][2], accept=True)
+                                exit_subaction = True
+                                break
+                            elif reply2[:1] == 'd' or reply2[:1] == 'D':
+                                manage_request(curs, res[row][4], res[row][5], res[row][2], accept=False)
+                                exit_subaction = True
+                                break
+                            elif reply2[:1] == 'c' or reply2[:1] == 'C':
+                                break
+                            else:
+                                print("Invalid command")
+                else:
+                    print("Invalid row")
+            else:
+                print("Invalid input")
+
+    return True
+
+
+def manage_request(curs, barcode, requester, date_required, accept):
     global current_username
     try:
-        query = "SELECT T.\"Tool Name\", R.\"Status\", R.\"Date Required\", R.\"Duration\" FROM p320_18.\"Tools\" T, p320_18.\"Request\" R WHERE R.\"Tool Owner\" = %s AND R.\"Tool Barcode\" = T.\"Tool Barcode\";"
-        params = (current_username,)
+        if accept:
+            reply = input("\nExpected date returned?   (MM/DD/YYYY)\n")
+            date_returned = datetime.datetime.strptime(reply, "%m/%d/%Y").date()
+            query = "UPDATE p320_18.\"Request\" SET \"Status\" = %s, \"Date Returned\" = %s WHERE \"Tool Barcode\" = %s AND \"Username\" = %s AND \"Tool Owner\" = %s AND \"Date Required\" = %s;"
+            params = ('Accepted', date_returned.strftime("%m/%d/%Y"), barcode, requester, current_username, date_required,)
+        else:
+            query = "UPDATE p320_18.\"Request\" SET \"Status\" = %s WHERE \"Tool Barcode\" = %s AND \"Username\" = %s AND \"Tool Owner\" = %s AND \"Date Required\" = %s;"
+            params = ('Denied', barcode, requester, current_username, date_required,)
         curs.execute(query, params)
     except Exception as e:
         print(e)
-        print("incoming_request failure")
+        print("manage_request failure")
         return False
+
+    if accept:
+        print("Successfully accepted the tool request")
+    else:
+        print("Successfully denied the tool request")
+    
     return True
 
 
@@ -318,7 +389,7 @@ def update_request(curs, barcode):
     """
     Checks to see if a request can be made. If so, add the request
     to the request table. If the tool is not sharable, deny the request.
-    If the tool is unowned, prompt the user to add the tool tp their catalog
+    If the tool is unowned, prompt the user to add the tool to their catalog
 
     Argumets:
         curs:       the connection cursor
@@ -334,11 +405,11 @@ def update_request(curs, barcode):
             
             while (True):
                 reply = str(input("\nWould you like to add the tool to your catalog? (y/n):\n").lower().strip())
-                if reply[:1] == 'y':
+                if reply[:1] == 'y' or reply[:1] == 'Y':
                     add_new_toolname_User(curs, barcode)
                     print("\nTool successfully added")
                     return True
-                elif reply[:1] == 'n':
+                elif reply[:1] == 'n' or reply[:1] == 'N':
                     print("Tool has not been added to your catalog")
                     return True
                 else:
@@ -909,8 +980,8 @@ def main():
 
             conn = psycopg2.connect(**params)
             curs = conn.cursor()
-            command_parser(curs)
             print("Database connection established")
+            command_parser(curs)
             conn.commit()
             conn.close()
     except Exception as e:
