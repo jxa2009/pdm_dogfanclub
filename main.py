@@ -280,12 +280,32 @@ def run_program(curs):
             elif sub_action == "outgoing":
                 print("outgoing requests")
                 outgoing_request(curs, )
-        
+            elif sub_action == "return":
+                action2 = parsed_cmd[2]
+            
+                return_tool(curs, int(action2))
+                print("return tool success")
         elif (action == "exit"):
             break
         else:
             print("invalid command")
 
+
+def return_tool(curs, barcode):
+    try:
+        global current_username
+        
+
+        query = "UPDATE p320_18.\"Request\" SET \"Status\" = %s  WHERE p320_18.\"Request\".\"Username\" = %s  AND WHERE p320_18.\"Request\".\"Tool Barcode\" AND p320_18.\"Request\".\"Status\" = %s;"
+
+        
+        params = ("Returned",current_username, barcode,"Accepted")
+        curs.execute(query, params)
+    except Exception as e:
+        print(e)
+        print("return_tool failure")
+        return False
+    return True
 
 def incoming_request(curs):
     global current_username
@@ -371,17 +391,27 @@ def manage_request(curs, barcode, requester, date_required, accept):
     return True
 
 
-#outgoing request stub
+
 def outgoing_request(curs, ):
     global current_username
     try:
-        query = "UPDATE p320_18.\"Tools\" SET \"Tool Name\" = %s WHERE p320_18.\"Tools\".\"Tool Barcode\" = %s AND p320_18.\"Tools\".\"Username\" = %s;"
-        params = (newtoolname, toolbarcode, current_username,)
+        query = "SELECT T.\"Tool Name\", R.\"Status\", R.\"Tool Barcode\", R.\"Username\" FROM p320_18.\"Tools\" T, p320_18.\"Request\" R WHERE R.\"Username\" = %s AND R.\"Tool Barcode\" = T.\"Tool Barcode\";"
+        params = (current_username,)
+       
+       
+       
         curs.execute(query, params)
     except Exception as e:
         print(e)
         print("outgoing_request failure")
+       
         return False
+    
+    res = curs.fetchone()
+    if res != None:
+        print("\nName: " + res[0] + "\n" + res[1] + "\n")
+        if res[2] != None:
+            print(res[2] + "\n")
     return True
 
 
