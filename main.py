@@ -135,6 +135,7 @@ def run_program(curs):
         print("\t        search category [tool_category]")
         print("\n\trequests incoming")
         print("\t         outgoing")
+        print("\t         return [tool_barcode]")
         print("\n\tborrow [tool_barcode]")
         
         cmd = input()
@@ -296,7 +297,7 @@ def return_tool(curs, barcode):
         global current_username
         
 
-        query = "UPDATE p320_18.\"Request\" SET \"Status\" = %s  WHERE p320_18.\"Request\".\"Username\" = %s  AND WHERE p320_18.\"Request\".\"Tool Barcode\" AND p320_18.\"Request\".\"Status\" = %s;"
+        query = "UPDATE p320_18.\"Request\" SET \"Status\" = %s  WHERE p320_18.\"Request\".\"Username\" = %s  AND p320_18.\"Request\".\"Tool Barcode\" = %s AND p320_18.\"Request\".\"Status\" = %s;"
 
         
         params = ("Returned",current_username, barcode,"Accepted")
@@ -406,12 +407,15 @@ def outgoing_request(curs, ):
         print("outgoing_request failure")
        
         return False
+
+    res = curs.fetchall()
+    if len(res) > 0:
+        print()
+        for request in res:
+            print('Tool Name:\t' + request[0] + '\nStatus:\t\t' + request[1] + '\nBarcode:\t' + str(request[2]) + '\n')
+    else:
+        print('You do not have any outgoing requests\n')
     
-    res = curs.fetchone()
-    if res != None:
-        print("\nName: " + res[0] + "\n" + res[1] + "\n")
-        if res[2] != None:
-            print(res[2] + "\n")
     return True
 
 
