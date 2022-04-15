@@ -120,7 +120,9 @@ def run_program(curs):
     """
     while True:
         # print the command you're gonna add here and how to use it
-
+        print("----DAHSBOARD----")
+        user_dahsboard(curs)
+        print("----DASHBOARD----")
         print("usage:")
         print("\tcategory new [category_name]")
         print("\t         add [tool_barcode] [category_id]")
@@ -135,9 +137,8 @@ def run_program(curs):
         print("\t        search category [tool_category]")
         print("\n\trequests incoming")
         print("\t         outgoing")
-        print("\t         return [tool_barcode]")
         print("\n\tborrow [tool_barcode]")
-        
+
         cmd = input()
         parsed_cmd = cmd.split()
         cmd_sz = len(parsed_cmd)
@@ -273,7 +274,7 @@ def run_program(curs):
         #incoming requests
         elif action == "requests":
             sub_action = parsed_cmd[1]
-            
+
             if sub_action == "incoming":
                 print("incoming request")
                 incoming_request(curs, )
@@ -283,7 +284,7 @@ def run_program(curs):
                 outgoing_request(curs, )
             elif sub_action == "return":
                 action2 = parsed_cmd[2]
-            
+
                 return_tool(curs, int(action2))
                 print("return tool success")
         elif (action == "exit"):
@@ -291,15 +292,58 @@ def run_program(curs):
         else:
             print("invalid command")
 
+def user_dahsboard(curs):
+    try:
+        print("TOOLS IN YOUR CATALOG\n")
+        query = "SELECT \"Tool Name\" FROM p320_18.\"Tools\" WHERE \"Username\" = %s;"
+        params = (str(current_username),)
+        curs.execute(query, params)
+        res = curs.fetchall()
+        for i in res:
+            print(i)
 
+    except Exception as e:
+        print(e)
+        print("return_tool failure")
+        return False
+    try:
+        print("\nLENT TOOLS")
+        query = "SELECT \"Tool Barcode\" FROM p320_18.\"Request\" WHERE \"Status\" = 'Accepted' AND \"Tool Owner\" = %s;"
+        params = (str(current_username),)
+        curs.execute(query, params)
+        res = curs.fetchall()
+        sum = 0
+        for i in res:
+            sum=sum+1
+        print(sum)
+    except Exception as e:
+        print(e)
+        print("return_tool failure")
+        return False
+    try:
+        print("\nBORROWED TOOLS")
+        query = "SELECT \"Username\" FROM p320_18.\"Request\" WHERE \"Username\" = %s;"
+        params = (str(current_username),)
+        curs.execute(query, params)
+        res = curs.fetchall()
+        sum=0
+        for i in res:
+            sum=sum+1
+        print(sum)
+
+    except Exception as e:
+        print(e)
+        print("return_tool failure")
+        return False
+    return True
 def return_tool(curs, barcode):
     try:
         global current_username
-        
 
-        query = "UPDATE p320_18.\"Request\" SET \"Status\" = %s  WHERE p320_18.\"Request\".\"Username\" = %s  AND p320_18.\"Request\".\"Tool Barcode\" = %s AND p320_18.\"Request\".\"Status\" = %s;"
 
-        
+        query = "UPDATE p320_18.\"Request\" SET \"Status\" = %s  WHERE p320_18.\"Request\".\"Username\" = %s  AND WHERE p320_18.\"Request\".\"Tool Barcode\" AND p320_18.\"Request\".\"Status\" = %s;"
+
+
         params = ("Returned",current_username, barcode,"Accepted")
         curs.execute(query, params)
     except Exception as e:
@@ -388,7 +432,7 @@ def manage_request(curs, barcode, requester, date_required, accept):
         print("Successfully accepted the tool request")
     else:
         print("Successfully denied the tool request")
-    
+
     return True
 
 
@@ -398,24 +442,21 @@ def outgoing_request(curs, ):
     try:
         query = "SELECT T.\"Tool Name\", R.\"Status\", R.\"Tool Barcode\", R.\"Username\" FROM p320_18.\"Tools\" T, p320_18.\"Request\" R WHERE R.\"Username\" = %s AND R.\"Tool Barcode\" = T.\"Tool Barcode\";"
         params = (current_username,)
-       
-       
-       
+
+
+
         curs.execute(query, params)
     except Exception as e:
         print(e)
         print("outgoing_request failure")
-       
+
         return False
 
-    res = curs.fetchall()
-    if len(res) > 0:
-        print()
-        for request in res:
-            print('Tool Name:\t' + request[0] + '\nStatus:\t\t' + request[1] + '\nBarcode:\t' + str(request[2]) + '\n')
-    else:
-        print('You do not have any outgoing requests\n')
-    
+    res = curs.fetchone()
+    if res != None:
+        print("\nName: " + res[0] + "\n" + res[1] + "\n")
+        if res[2] != None:
+            print(res[2] + "\n")
     return True
 
 
@@ -436,7 +477,7 @@ def update_request(curs, barcode):
     try:
         if not is_tool_owned(curs, barcode):
             print("\nThis tool is not owned.")
-            
+
             while (True):
                 reply = str(input("\nWould you like to add the tool to your catalog? (y/n):\n").lower().strip())
                 if reply[:1] == 'y' or reply[:1] == 'Y':
@@ -485,7 +526,7 @@ def is_tool_owned(curs, barcode):
     Arguments:
         curs:       the connection cursor
         barcode:    the barcode of the tool to check
-    
+
     Returns:
         True:       if the tool is owned by someone
         False:      if the tool is unowned
