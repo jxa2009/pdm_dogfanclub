@@ -138,6 +138,7 @@ def run_program(curs):
         print("\n\trequests incoming")
         print("\t         outgoing")
         print("\n\tborrow [tool_barcode]")
+        print("\n\tsuggest")
 
         cmd = input()
         parsed_cmd = cmd.split()
@@ -287,10 +288,40 @@ def run_program(curs):
 
                 return_tool(curs, int(action2))
                 print("return tool success")
+        elif action == "suggest":
+            get_suggestions(curs)
         elif (action == "exit"):
             break
         else:
             print("invalid command")
+
+def get_suggestions(curs):
+    try: 
+        #SELECT "Tool Barcode" FROM p320_18."Request" WHERE "Username" IN (SELECT DISTINCT "Tool Owner" FROM p320_18."Request" WHERE "Username" ='a')
+        query = "SELECT \"Tool Barcode\" FROM p320_18.\"Request\" WHERE \"Username\" IN (SELECT DISTINCT \"Tool Owner\" FROM p320_18.\"Request\" WHERE \"Username\" = %s)"
+        params = (current_username ,)
+        curs.execute(query, params)
+    except Exception as e:
+        print(e)
+        print("get_suggestions failure")
+
+    res = curs.fetchall()
+    freq_d = {}
+
+
+    for barcode in res:
+        if barcode not in freq_d:
+            freq_d[barcode[0]] = 0
+        freq_d[barcode[0]]+=1
+
+    suggested_items = sorted(freq_d,key=freq_d.get, reverse=True)[:3]
+    print("The following are barcodes that are suggested:", end = " ")
+    for item in suggested_items:
+        print(item, end = " ")
+
+    print("")
+
+    return res
 
 def user_dahsboard(curs):
     try:
