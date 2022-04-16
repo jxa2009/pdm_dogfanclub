@@ -183,7 +183,7 @@ def run_program(curs):
             else:
                 print("invalid search parameter")
 
-        elif action == "borrow":
+        elif action == "borrow": 
             barcode = parsed_cmd[1]
             update_request(curs, barcode)
 
