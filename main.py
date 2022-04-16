@@ -120,7 +120,9 @@ def run_program(curs):
     """
     while True:
         # print the command you're gonna add here and how to use it
-
+        print("----DAHSBOARD----")
+        user_dahsboard(curs)
+        print("----DASHBOARD----")
         print("usage:")
         print("\tcategory new [category_name]")
         print("\t         add [tool_barcode] [category_id]")
@@ -136,7 +138,7 @@ def run_program(curs):
         print("\n\trequests incoming")
         print("\t         outgoing")
         print("\n\tborrow [tool_barcode]")
-        print("\tsuggest")
+
         cmd = input()
         parsed_cmd = cmd.split()
         cmd_sz = len(parsed_cmd)
@@ -265,16 +267,14 @@ def run_program(curs):
 
                 else:
                     print("invalid search parameter")
-            
+
             else:
                 print("invalid command")
-        elif action == "suggest":
-            get_suggestions(curs)
 
         #incoming requests
         elif action == "requests":
             sub_action = parsed_cmd[1]
-            
+
             if sub_action == "incoming":
                 print("incoming request")
                 incoming_request(curs, )
@@ -284,55 +284,66 @@ def run_program(curs):
                 outgoing_request(curs, )
             elif sub_action == "return":
                 action2 = parsed_cmd[2]
-            
+
                 return_tool(curs, int(action2))
                 print("return tool success")
-        elif action == "suggestion":
-            get_suggestions()
         elif (action == "exit"):
             break
         else:
             print("invalid command")
 
-def get_suggestions(curs):
-    #SELECT "Tool Barcode" FROM p320_18."Request" WHERE "Username" IN (SELECT DISTINCT "Tool Owner" FROM p320_18."Request" WHERE "Username" ='a')
+def user_dahsboard(curs):
     try:
-        query = "SELECT \"Tool Barcode\" FROM p320_18.\"Request\" WHERE \"Username\" IN (SELECT DISTINCT \"Tool Owner\" FROM p320_18.\"Request\" WHERE \"Username\" = %s)"
-        params = (current_username ,)
+        print("TOOLS IN YOUR CATALOG\n")
+        query = "SELECT \"Tool Name\" FROM p320_18.\"Tools\" WHERE \"Username\" = %s;"
+        params = (str(current_username),)
         curs.execute(query, params)
-        
+        res = curs.fetchall()
+        for i in res:
+            print(i)
+
     except Exception as e:
         print(e)
-        print("get_suggestions failure")
+        print("return_tool failure")
         return False
+    try:
+        print("\nLENT TOOLS")
+        query = "SELECT \"Tool Barcode\" FROM p320_18.\"Request\" WHERE \"Status\" = 'Accepted' AND \"Tool Owner\" = %s;"
+        params = (str(current_username),)
+        curs.execute(query, params)
+        res = curs.fetchall()
+        sum = 0
+        for i in res:
+            sum=sum+1
+        print(sum)
+    except Exception as e:
+        print(e)
+        print("return_tool failure")
+        return False
+    try:
+        print("\nBORROWED TOOLS")
+        query = "SELECT \"Username\" FROM p320_18.\"Request\" WHERE \"Username\" = %s;"
+        params = (str(current_username),)
+        curs.execute(query, params)
+        res = curs.fetchall()
+        sum=0
+        for i in res:
+            sum=sum+1
+        print(sum)
 
-    
-    res = curs.fetchall()
-    freq_d = {}
-
-    
-    for barcode in res:
-        if barcode not in freq_d:
-            freq_d[barcode[0]] = 0
-        freq_d[barcode[0]]+=1
-
-    suggested_items = sorted(freq_d,key=freq_d.get, reverse=True)[:3]
-    print("The following are barcodes that are suggested:", end = " ")
-    for item in suggested_items:
-        print(item, end = " ")
-
-    print("")
-        
-    return res
-
+    except Exception as e:
+        print(e)
+        print("return_tool failure")
+        return False
+    return True
 def return_tool(curs, barcode):
     try:
         global current_username
-        
+
 
         query = "UPDATE p320_18.\"Request\" SET \"Status\" = %s  WHERE p320_18.\"Request\".\"Username\" = %s  AND WHERE p320_18.\"Request\".\"Tool Barcode\" AND p320_18.\"Request\".\"Status\" = %s;"
 
-        
+
         params = ("Returned",current_username, barcode,"Accepted")
         curs.execute(query, params)
     except Exception as e:
@@ -421,7 +432,7 @@ def manage_request(curs, barcode, requester, date_required, accept):
         print("Successfully accepted the tool request")
     else:
         print("Successfully denied the tool request")
-    
+
     return True
 
 
@@ -431,16 +442,16 @@ def outgoing_request(curs, ):
     try:
         query = "SELECT T.\"Tool Name\", R.\"Status\", R.\"Tool Barcode\", R.\"Username\" FROM p320_18.\"Tools\" T, p320_18.\"Request\" R WHERE R.\"Username\" = %s AND R.\"Tool Barcode\" = T.\"Tool Barcode\";"
         params = (current_username,)
-       
-       
-       
+
+
+
         curs.execute(query, params)
     except Exception as e:
         print(e)
         print("outgoing_request failure")
-       
+
         return False
-    
+
     res = curs.fetchone()
     if res != None:
         print("\nName: " + res[0] + "\n" + res[1] + "\n")
@@ -466,7 +477,7 @@ def update_request(curs, barcode):
     try:
         if not is_tool_owned(curs, barcode):
             print("\nThis tool is not owned.")
-            
+
             while (True):
                 reply = str(input("\nWould you like to add the tool to your catalog? (y/n):\n").lower().strip())
                 if reply[:1] == 'y' or reply[:1] == 'Y':
@@ -515,7 +526,7 @@ def is_tool_owned(curs, barcode):
     Arguments:
         curs:       the connection cursor
         barcode:    the barcode of the tool to check
-    
+
     Returns:
         True:       if the tool is owned by someone
         False:      if the tool is unowned
