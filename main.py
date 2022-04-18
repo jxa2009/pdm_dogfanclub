@@ -319,7 +319,7 @@ def Statisctics(curs):
         
         lent_tools = sorted(freq, key=freq.get, reverse=True)[:10]
         
-        print("Top 10 Lent Tools: ", end = " ")
+        print("Top 10 Lent Tools: ")
         for i in range(len(lent_tools)):
             print(i+1,". ", lent_tools[i], " Avg Days Lent: ", times_d[lent_tools[i]] / freq[lent_tools[i]])
         
