@@ -7,6 +7,7 @@ from shutil import register_unpack_format
 import psycopg2
 from sshtunnel import SSHTunnelForwarder
 from datetime import date
+from statistics import mode
 
 cs_username = ""
 cs_password = ""
@@ -123,6 +124,8 @@ def run_program(curs):
         print("----DAHSBOARD----")
         user_dahsboard(curs)
         print("----DASHBOARD----")
+        print("STATISTICS")
+        Statisctics(curs)
         print("usage:")
         print("\tcategory new [category_name]")
         print("\t         add [tool_barcode] [category_id]")
@@ -294,9 +297,18 @@ def run_program(curs):
             break
         else:
             print("invalid command")
-
+def Statisctics(curs):
+    try:
+        query = "SELECT \"Tool Barcode\" FROM p320_18.\"Request\" WHERE \"Status\" = 'Accepted';"
+        curs.execute(query)
+        res = curs.fetchall()
+        print("Tool been requested the most: ", mode(res))
+    except Exception as e:
+        print(e)
+        print("get_suggestions failure")
+    return
 def get_suggestions(curs):
-    try: 
+    try:
         #SELECT "Tool Barcode" FROM p320_18."Request" WHERE "Username" IN (SELECT DISTINCT "Tool Owner" FROM p320_18."Request" WHERE "Username" ='a')
         query = "SELECT \"Tool Barcode\" FROM p320_18.\"Request\" WHERE \"Username\" IN (SELECT DISTINCT \"Tool Owner\" FROM p320_18.\"Request\" WHERE \"Username\" = %s)"
         params = (current_username ,)
