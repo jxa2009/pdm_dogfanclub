@@ -124,8 +124,6 @@ def run_program(curs):
         print("----DAHSBOARD----")
         user_dahsboard(curs)
         print("----DASHBOARD----")
-        print("STATISTICS")
-        Statisctics(curs)
         print("usage:")
         print("\tcategory new [category_name]")
         print("\t         add [tool_barcode] [category_id]")
@@ -142,6 +140,7 @@ def run_program(curs):
         print("\t         outgoing")
         print("\n\tborrow [tool_barcode]")
         print("\n\tsuggest")
+        print("\n\tstats")
 
         cmd = input()
         parsed_cmd = cmd.split()
@@ -293,6 +292,9 @@ def run_program(curs):
                 print("return tool success")
         elif action == "suggest":
             get_suggestions(curs)
+        elif action == "stats":
+            get_borrowed_stats(curs)
+            Statisctics(curs)
         elif (action == "exit"):
             break
         else:
@@ -302,32 +304,55 @@ def Statisctics(curs):
         query = "SELECT \"Tool Barcode\", \"Duration\" FROM p320_18.\"Request\" WHERE \"Status\" = 'Accepted';"
         curs.execute(query)
         res = curs.fetchall()
-        print(res)
+        
         freq = {}
-        for barcode in res:
+        times_d = {}
+        for row in res:
+            barcode = row[0]
+            dur = row[1]
             if barcode not in freq:
-                freq[barcode[0]] = 0
-            freq[barcode[0]] += 1
-        #for duration
-        for barcode in res:
-            if barcode not in freq:
-                freq[barcode[1]] = 0
-            freq[barcode[1]] += 1
-        print(freq)
+                freq[barcode] = 0
+                times_d[barcode] = 0
+            freq[barcode] += 1
+            times_d[barcode] += dur
+        
+        
         lent_tools = sorted(freq, key=freq.get, reverse=True)[:10]
-        duration = sorted(freq, key=freq.get, reverse=True)[:10]
+        
         print("Top 10 Lent Tools: ", end = " ")
-        for item in lent_tools:
-            print(item, end = " ")
-        print("")
-        sum=0
-        for item in duration:
-            sum = sum+item
-        print("Average Duration: ", sum/(len(duration)))
+        for i in range(len(lent_tools)):
+            print(i+1,". ", lent_tools[i], " Avg Days Lent: ", times_d[lent_tools[i]] / freq[lent_tools[i]])
+        
     except Exception as e:
         print(e)
         print("get_suggestions failure")
     return
+def get_borrowed_stats(curs):
+    try:
+        query = "SELECT \"Tool Barcode\" FROM p320_18.\"Request\" WHERE \"Username\" = %s"
+        params = (current_username,)
+        curs.execute(query,params)
+
+    except Exception as e:
+        print(e)
+        print("get_borrowed_stats")
+    res = curs.fetchall()
+    freq_d = {}
+    
+    for row in res:
+        barcode = row[0]
+        if barcode not in freq_d:
+            freq_d[barcode] = 0
+        freq_d[barcode] += 1
+    most_borrowed = sorted(freq_d,key=freq_d.get, reverse=True)[:10]
+    if len(most_borrowed) == 0:
+        print("No tools have been borrowed")
+    else:
+        print("Most frequently borrowed tools: ")
+        for i in range(min(10,len(most_borrowed))):
+            print(i+1,". ", most_borrowed[i])
+
+    return True
 def get_suggestions(curs):
     try:
         #SELECT "Tool Barcode" FROM p320_18."Request" WHERE "Username" IN (SELECT DISTINCT "Tool Owner" FROM p320_18."Request" WHERE "Username" ='a')
