@@ -299,10 +299,31 @@ def run_program(curs):
             print("invalid command")
 def Statisctics(curs):
     try:
-        query = "SELECT \"Tool Barcode\" FROM p320_18.\"Request\" WHERE \"Status\" = 'Accepted';"
+        query = "SELECT \"Tool Barcode\", \"Duration\" FROM p320_18.\"Request\" WHERE \"Status\" = 'Accepted';"
         curs.execute(query)
         res = curs.fetchall()
-        print("Tool been requested the most: ", mode(res))
+        print(res)
+        freq = {}
+        for barcode in res:
+            if barcode not in freq:
+                freq[barcode[0]] = 0
+            freq[barcode[0]] += 1
+        #for duration
+        for barcode in res:
+            if barcode not in freq:
+                freq[barcode[1]] = 0
+            freq[barcode[1]] += 1
+        print(freq)
+        lent_tools = sorted(freq, key=freq.get, reverse=True)[:10]
+        duration = sorted(freq, key=freq.get, reverse=True)[:10]
+        print("Top 10 Lent Tools: ", end = " ")
+        for item in lent_tools:
+            print(item, end = " ")
+        print("")
+        sum=0
+        for item in duration:
+            sum = sum+item
+        print("Average Duration: ", sum/(len(duration)))
     except Exception as e:
         print(e)
         print("get_suggestions failure")
